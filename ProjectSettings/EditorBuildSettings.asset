@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_3DStealthGame/Tutorial_Demo/Demo_Scenes/MainMenu.unity
+    guid: e0afa25d30aeb924895fa68e23be7af2
+  - enabled: 1
+    path: Assets/_3DStealthGame/Scenes/Scene_01.unity
+    guid: 81174d7f112c7a44ea584baf5cbce2ee
+  - enabled: 1
+    path: Assets/_3DStealthGame/Scenes/Scene_02.unity
+    guid: 02eef4a648203e04e886db454ba7923e
+  - enabled: 1
+    path: Assets/_3DStealthGame/Scenes/Scene_03.unity
+    guid: 84dc3b2676651ba4da7b7af3fc35b6bc
+  m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f,
+      type: 2}
+  m_UseUCBPForAssetBundles: 0

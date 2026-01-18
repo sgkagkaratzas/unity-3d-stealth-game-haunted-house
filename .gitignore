@@ -1,0 +1,60 @@
+# =============== Unity Generated ===============
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+sysinfo.txt
+MemoryCaptures/
+Logs/
+CrashReports/
+UserSettings/
+Library/PackageCache/
+Library/ScriptAssemblies/
+
+# User-specific & IDE files
+.vscode/
+.vs/
+.vsconfig
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+.DS_Store
+Thumbs.db
+
+# =============== Asset Store EULA Protection ===============
+# 1. Ignore ALL contents of the Assets folder by default
+/Assets/*
+
+# 2. Re-include ONLY your original work folder
+# Replace "_MyProject" with your actual folder name
+!/Assets/_MyProject/
+!/Assets/_MyProject/**
+
+# 3. CRITICAL: Allow .meta files for the top-level folders 
+# (Required so Unity doesn't break scene references)
+!/Assets/*.meta
+
+# 4. Explicitly ensure the 3D Stealth Game & Samples are ignored
+Assets/_3DStealthGame/
+Assets/TextMesh Pro/
+Assets/TutorialInfo/
+Assets/Standard Assets/
+
+# =============== Project Settings ===============
+# We track ProjectSettings, but ignore the file containing your private Project ID
+ProjectSettings/UnityConnectSettings.asset
+
+# =============== Packages ===============
+# We keep the manifest and the lock file to ensure version consistency
+!Packages/manifest.json
+!Packages/packages-lock.json
+
+# =============== Build Results ===============
+*.apk
+*.aab
+*.unitypackage
