@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace MyGame.Scene02.Player
+namespace MyGame.Player
 {
     public class PlayerMovement : MonoBehaviour
     {
@@ -9,6 +10,8 @@ namespace MyGame.Scene02.Player
 
         public float walkSpeed = 1.0f;
         public float turnSpeed = 20f;
+
+        private List<string> m_OwnedKeys = new List<string>();
 
         Rigidbody m_Rigidbody;
         Animator m_Animator; // 1. Added Animator reference
@@ -63,6 +66,16 @@ namespace MyGame.Scene02.Player
             {
                 m_AudioSource.Stop();
             }
+        }
+
+        public void AddKey(string keyName)
+        {
+            m_OwnedKeys.Add(keyName);
+        }
+
+        public bool OwnKey(string keyName)
+        {
+            return m_OwnedKeys.Contains(keyName);
         }
     }
 }
