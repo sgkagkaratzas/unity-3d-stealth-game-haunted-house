@@ -68,12 +68,13 @@ namespace MyGame.Scene03.System
             {
                 if (doRestart)
                 {
+                    Time.timeScale = 1;
                     SceneManager.LoadScene("Scene_03");
                 }
                 else
                 {
-                    Application.Quit();
-                    Time.timeScale = 0;
+                    Time.timeScale = 1;
+                    SceneManager.LoadScene("MainMenu");
                 }
             }
         }
