@@ -1,3 +1,4 @@
+using MyGame.Global;
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -38,7 +39,16 @@ namespace MyGame.Menu
                 m_StartButton = root.Q<Button>("StartButton");
                 if (m_StartButton != null)
                 {
-                    m_StartButton.clicked += () => SceneManager.LoadScene("Scene_01");
+                    m_StartButton.clicked += () =>
+                    {
+                        // Generate a unique name: "User_" + first 4 chars of a global ID
+                        string shortHash = Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
+                        GlobalGameData.PlayerName = "User_" + shortHash;
+
+                        Debug.Log("Generated Name: " + GlobalGameData.PlayerName);
+
+                        SceneManager.LoadScene("Scene_01");
+                    };
                 }
 
                 // 2. Setup Credits Button

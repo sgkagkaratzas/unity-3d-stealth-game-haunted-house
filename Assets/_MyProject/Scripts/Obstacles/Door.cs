@@ -14,6 +14,8 @@ namespace MyGame.Obstacles
 
             if (player.OwnKey(KeyName))
             {
+                player.PlayDoorSound();
+
                 Destroy(gameObject);
             }
         }
