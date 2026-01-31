@@ -78,7 +78,8 @@ namespace MyGame.Scene01.System
         {
             if (m_TimerLabel != null)
             {
-                m_TimerLabel.text = GlobalGameData.GameTimer.ToString("0.00");
+                int seconds = Mathf.FloorToInt(GlobalGameData.GameTimer);
+                m_TimerLabel.text = seconds.ToString();
             }
         }
 

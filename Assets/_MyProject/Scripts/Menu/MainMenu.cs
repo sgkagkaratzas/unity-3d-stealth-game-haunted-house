@@ -1,5 +1,6 @@
 using MyGame.Global;
 using System;
+using System.Collections.Generic; // Required for Lists
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -16,12 +17,10 @@ namespace MyGame.Menu
             private Button m_StartButton;
             private Button m_CreditsButton;
             private Button m_InfoButton;
+            private Button m_ExitButton;
 
             [Header("Scene References")]
-            [Tooltip("The CreditsUI GameObject to turn on.")]
             [SerializeField] private GameObject m_CreditsUI;
-
-            [Tooltip("The InfoUI GameObject to turn on.")]
             [SerializeField] private GameObject m_InfoUI;
 
             private void Awake()
@@ -41,29 +40,75 @@ namespace MyGame.Menu
                 {
                     m_StartButton.clicked += () =>
                     {
-                        // Generate a unique name: "User_" + first 4 chars of a global ID
-                        string shortHash = Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
+                        string shortHash = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
                         GlobalGameData.PlayerName = "User_" + shortHash;
-
                         Debug.Log("Generated Name: " + GlobalGameData.PlayerName);
-
                         SceneManager.LoadScene("Scene_01");
                     };
+                    AddHoverAnimation(m_StartButton);
                 }
 
-                // 2. Setup Credits Button
+                // 2. Setup New Credits Button
                 m_CreditsButton = root.Q<Button>("CreditsButton");
                 if (m_CreditsButton != null)
                 {
                     m_CreditsButton.clicked += OnCreditsClicked;
+                    AddHoverAnimation(m_CreditsButton);
                 }
 
-                // 3. Setup Info Button (Ensure your button is named 'InfoButton' in UI Builder)
+                // 3. Setup Info Button
                 m_InfoButton = root.Q<Button>("InfoButton");
                 if (m_InfoButton != null)
                 {
                     m_InfoButton.clicked += OnInfoClicked;
+                    AddHoverAnimation(m_InfoButton);
                 }
+
+                // 4. Setup Exit Button
+                m_ExitButton = root.Q<Button>("ExitButton");
+                if (m_ExitButton != null)
+                {
+                    if (Application.platform == RuntimePlatform.WebGLPlayer)
+                    {
+                        m_ExitButton.style.display = DisplayStyle.None;
+                    }
+                    else
+                    {
+                        m_ExitButton.style.display = DisplayStyle.Flex;
+                        m_ExitButton.text = "Exit";
+                        m_ExitButton.clicked += () => Application.Quit();
+                        AddHoverAnimation(m_ExitButton);
+                    }
+                }
+            }
+
+            private void AddHoverAnimation(Button button)
+            {
+                if (button == null) return;
+
+                // 1. Set Transition Duration (0.1 seconds)
+                button.style.transitionDuration = new List<TimeValue>
+                {
+                    new TimeValue(0.1f, TimeUnit.Second)
+                };
+
+                // 2. Set Easing (Optional, makes it bouncy)
+                button.style.transitionTimingFunction = new List<EasingFunction>
+                {
+                    new EasingFunction(EasingMode.EaseOutBack)
+                };
+
+                // 3. Hover Event (Scale UP using style.scale)
+                button.RegisterCallback<MouseEnterEvent>(evt =>
+                {
+                    button.style.scale = new Scale(new Vector3(1.1f, 1.1f, 1f));
+                });
+
+                // 4. Exit Event (Scale BACK using style.scale)
+                button.RegisterCallback<MouseLeaveEvent>(evt =>
+                {
+                    button.style.scale = new Scale(Vector3.one);
+                });
             }
 
             private void OnCreditsClicked()
