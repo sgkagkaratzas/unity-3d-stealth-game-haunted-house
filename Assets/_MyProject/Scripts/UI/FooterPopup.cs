@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 namespace MyGame.UI
 {
@@ -26,17 +27,44 @@ namespace MyGame.UI
             m_HelpButton = root.Q<Button>("HelpButton");
             m_CloseButton = root.Q<Button>("CloseHelpButton");
 
-            // 2. Setup Open Button
             if (m_HelpButton != null)
             {
-                m_HelpButton.clicked += OpenPopup;
+                m_HelpButton.focusable = false;
+                m_HelpButton.clicked += TogglePopup;
             }
 
-            // 3. Setup Close Button
             if (m_CloseButton != null)
             {
+                m_CloseButton.focusable = false;
                 m_CloseButton.clicked += ClosePopup;
             }
+        }
+
+        private void Update()
+        {
+            // 1. Keyboard 'H'
+            bool hitH = Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame;
+
+            // 2. Xbox 'View' Button
+            bool hitView = Gamepad.current != null && Gamepad.current.selectButton.wasPressedThisFrame;
+
+            if (hitH || hitView)
+            {
+                TogglePopup();
+            }
+        }
+
+        private void TogglePopup()
+        {
+            if (m_HelpPopup == null) return;
+
+            // Check if visible
+            bool isVisible = m_HelpPopup.style.display == DisplayStyle.Flex;
+
+            if (isVisible)
+                ClosePopup();
+            else
+                OpenPopup();
         }
 
         private void OpenPopup()
