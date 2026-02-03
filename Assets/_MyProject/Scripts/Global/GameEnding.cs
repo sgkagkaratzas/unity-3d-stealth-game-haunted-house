@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 namespace MyGame.Global
 {
@@ -15,6 +16,11 @@ namespace MyGame.Global
 
         // Name of the next scene to load
         public string nextSceneName = null;
+
+        [Header("Controller Inputs (The Poll)")]
+        // We will map these in the Inspector
+        public InputAction confirmAction; // Xbox 'A' / Enter
+        public InputAction cancelAction;  // Xbox 'B' / Backspace
 
         bool m_HasAudioPlayed;
         bool m_IsPlayerAtExit;
@@ -50,7 +56,6 @@ namespace MyGame.Global
             m_TimerLabel = root.Q<Label>("TimerLabel");
             m_UsernameLabel = root.Q<Label>("UsernameLabel");
 
-            GlobalGameData.GameTimer = 0f;
             UpdateTimerLabel();
 
             if (m_UsernameLabel != null)
@@ -100,17 +105,30 @@ namespace MyGame.Global
         // Handles the Win Popup logic
         void ShowRatingPopup(AudioSource audioSource)
         {
-            if (!m_HasAudioPlayed)
+            if (!m_HasAudioPlayed && audioSource != null)
             {
                 audioSource.Play();
                 m_HasAudioPlayed = true;
             }
 
-            // Show the popup
-            if (m_RatingPopup != null) m_RatingPopup.style.display = DisplayStyle.Flex;
+            // Ensure cursor is visible for PC
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
 
-            // Pause the game so the timer stops and player can't move
+            if (m_RatingPopup != null) m_RatingPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0f;
+
+            // 1. Check Confirm (Xbox A OR Keyboard Y)
+            if (confirmAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame))
+            {
+                OnRateClicked(true);
+            }
+
+            // 2. Check Cancel (Xbox B OR Keyboard N)
+            if (cancelAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame))
+            {
+                OnRateClicked(false);
+            }
         }
 
         // Called when Yes or No is clicked
