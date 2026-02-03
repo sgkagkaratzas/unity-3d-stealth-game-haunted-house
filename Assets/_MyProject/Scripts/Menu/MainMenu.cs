@@ -40,9 +40,14 @@ namespace MyGame.Menu
                 {
                     m_StartButton.clicked += () =>
                     {
+                        // 1. Reset Timer for the new game
+                        GlobalGameData.GameTimer = 0f;
+
+                        // 2. Generate New Username
                         string shortHash = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
                         GlobalGameData.PlayerName = "User_" + shortHash;
-                        Debug.Log("Generated Name: " + GlobalGameData.PlayerName);
+
+                        Debug.Log($"New Game Started. Name: {GlobalGameData.PlayerName}, Timer Reset.");
                         SceneManager.LoadScene("Scene_01");
                     };
                     AddHoverAnimation(m_StartButton);

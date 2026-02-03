@@ -15,7 +15,7 @@ namespace MyGame.Player
 
         // Configuration for the speed boost
         [Header("Speed Boost Settings")]
-        public float boostDuration = 3.0f;   // How long the boost lasts (in seconds)
+        public float boostDuration = 5.0f;   // How long the boost lasts (in seconds)
         public float boostMultiplier = 2.0f; // How much faster you go (2.0 = double speed)
 
         // Slot to drag your sound file into
