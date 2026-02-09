@@ -4,6 +4,7 @@ using MyGame.Player;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 namespace MyGame.Obstacles
 {
@@ -13,9 +14,10 @@ namespace MyGame.Obstacles
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip successSound;
         [SerializeField] private AudioClip failSound;
-        [SerializeField] private AudioClip mercySound;
 
         [Header("Colors")]
+        // The color when you are HOVERING or NAVIGATING to a button
+        [SerializeField] private Color selectedColor = new Color(0.3f, 0.3f, 0.3f, 1f); // Dark Gray
         [SerializeField] private Color correctColor = new Color(0.18f, 0.8f, 0.44f);
         [SerializeField] private Color wrongColor = new Color(0.9f, 0.3f, 0.23f);
         [SerializeField] private Color mercyColor = new Color(1f, 0.84f, 0f);
@@ -47,10 +49,22 @@ namespace MyGame.Obstacles
             _questionLabel = root.Q<Label>("QuestionLabel");
             _answersContainer = root.Q<VisualElement>("AnswersContainer");
 
-            // Ensure the Question Label doesn't block clicks if it overlaps the button
             if (_questionLabel != null) _questionLabel.pickingMode = PickingMode.Ignore;
 
             root.Q<Button>("CancelQuizButton").clicked += ClosePopup;
+        }
+
+        private void Update()
+        {
+            // Close on B / Escape
+            if (_questionPopup.style.display == DisplayStyle.Flex && !_isProcessingAnswer)
+            {
+                bool cancelPressed = false;
+                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) cancelPressed = true;
+                if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame) cancelPressed = true;
+
+                if (cancelPressed) ClosePopup();
+            }
         }
 
         private void LoadQuestions()
@@ -69,33 +83,22 @@ namespace MyGame.Obstacles
 
             if (_currentPlayer != null) _currentPlayer.ForceIdle();
 
-            // 1. Get all questions for "key0001"
-            var fullPool = _allQuestions.questions
-                .Where(q => q.id == keyInstance.KeyName)
-                .ToList();
+            var fullPool = _allQuestions.questions.Where(q => q.id == keyInstance.KeyName).ToList();
 
             if (fullPool.Count > 0)
             {
-                // 2. Filter out the ID we used last time
-                var filteredPool = fullPool
-                    .Where(q => q.q_id != keyInstance.LastQuestionID)
-                    .ToList();
-
-                // Safety: If filtering removed everything (e.g. only 1 question exists), use full pool
+                var filteredPool = fullPool.Where(q => q.q_id != keyInstance.LastQuestionID).ToList();
                 var finalPool = (filteredPool.Count > 0) ? filteredPool : fullPool;
 
-                // 3. Pick Random
                 int randomIndex = Random.Range(0, finalPool.Count);
                 _currentQuestionData = finalPool[randomIndex];
-
-                // 4. Remember this ID for next time
                 keyInstance.LastQuestionID = _currentQuestionData.q_id;
 
                 RenderQuestion();
             }
             else
             {
-                Debug.LogError($"No questions found in JSON for Key ID: {keyInstance.KeyName}");
+                Debug.LogError($"No questions found for Key ID: {keyInstance.KeyName}");
                 ClosePopup();
             }
         }
@@ -110,14 +113,25 @@ namespace MyGame.Obstacles
                 Button newBtn = new Button();
                 newBtn.text = _currentQuestionData.answers[i];
                 newBtn.AddToClassList("answer-button");
+
+                // Base Style
                 newBtn.style.height = 50;
                 newBtn.style.marginBottom = 10;
                 newBtn.style.fontSize = 18;
-                newBtn.style.backgroundColor = StyleKeyword.Null;
+                newBtn.style.backgroundColor = StyleKeyword.Null; // Clear background
                 newBtn.style.borderTopLeftRadius = 10;
                 newBtn.style.borderTopRightRadius = 10;
                 newBtn.style.borderBottomLeftRadius = 10;
                 newBtn.style.borderBottomRightRadius = 10;
+
+                // --- VISUAL FEEDBACK LOGIC ---
+                // 1. Mouse Hover
+                newBtn.RegisterCallback<MouseEnterEvent>(evt => newBtn.style.backgroundColor = selectedColor);
+                newBtn.RegisterCallback<MouseLeaveEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
+
+                // 2. Controller/Keyboard Focus
+                newBtn.RegisterCallback<FocusEvent>(evt => newBtn.style.backgroundColor = selectedColor);
+                newBtn.RegisterCallback<BlurEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
 
                 int index = i;
                 newBtn.clicked += () =>
@@ -131,6 +145,12 @@ namespace MyGame.Obstacles
 
             _questionPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0;
+
+            // Auto-Focus First Button
+            if (_activeButtons.Count > 0)
+            {
+                _activeButtons[0].schedule.Execute(() => _activeButtons[0].Focus());
+            }
         }
 
         private IEnumerator HandleAnswerRoutine(int selectedIndex, Button clickedButton)
@@ -140,51 +160,34 @@ namespace MyGame.Obstacles
 
             if (isCorrect)
             {
-                // --- CORRECT ANSWER ---
                 clickedButton.style.backgroundColor = new StyleColor(correctColor);
                 if (successSound != null) audioSource.PlayOneShot(successSound);
 
                 yield return new WaitForSecondsRealtime(1.5f);
-
-                // Give Boost (TRUE)
                 UnlockDoor(giveBoost: true);
             }
             else
             {
-                // --- WRONG ANSWER (ANY ATTEMPT) ---
                 clickedButton.style.backgroundColor = new StyleColor(wrongColor);
                 if (failSound != null) audioSource.PlayOneShot(failSound);
 
                 _currentActiveKey.RegisterFailure();
 
-                // --- NEW FEATURE: SHOW CORRECT ANSWER ALWAYS ---
-                // Wait 1 second so they see their mistake (RED)
                 yield return new WaitForSecondsRealtime(1.0f);
 
-                // Highlight the correct answer in GOLD/ORANGE
+                // Show Mercy Hint
                 int correctIdx = _currentQuestionData.correctIndex;
                 if (correctIdx < _activeButtons.Count)
                 {
-                    // Optional: Play a small "hint" sound here if you want
-                    // if (mercySound != null) audioSource.PlayOneShot(mercySound);
-
                     _activeButtons[correctIdx].style.backgroundColor = new StyleColor(mercyColor);
                 }
 
-                // Wait 3 seconds so they can read and learn the correct answer
                 yield return new WaitForSecondsRealtime(3.0f);
 
-                // --- NOW DECIDE: MERCY OR RETRY? ---
                 if (_currentActiveKey.FailureCount >= 2)
-                {
-                    // MERCY: Unlock the door, but NO Boost (FALSE)
                     UnlockDoor(giveBoost: false);
-                }
                 else
-                {
-                    // RETRY: Close popup so they can run away and try again later
                     ClosePopup();
-                }
             }
         }
 
@@ -192,22 +195,10 @@ namespace MyGame.Obstacles
         {
             if (_currentPlayer != null && _currentActiveKey != null)
             {
-                // 1. Give the Key (Always)
                 _currentPlayer.AddKey(_currentActiveKey.KeyName);
-
-                // 2. Give Boost (Conditional)
-                if (giveBoost)
-                {
-                    _currentPlayer.HandleSpeedBoost();
-                    Debug.Log("Boost Granted!");
-                }
-                else
-                {
-                    Debug.Log("Mercy Unlock: No Boost granted.");
-                }
+                if (giveBoost) _currentPlayer.HandleSpeedBoost();
 
                 _currentActiveKey.ResolveKey(isMercy: !giveBoost);
-
                 _currentActiveKey = null;
             }
             ClosePopup();
@@ -215,16 +206,9 @@ namespace MyGame.Obstacles
 
         private void ClosePopup()
         {
-            // --- CRITICAL FIX ---
-            // Stop the "HandleAnswerRoutine" immediately!
-            // This ensures the code doesn't try to continue running 
-            // after we have cleared the data below.
             StopAllCoroutines();
-
             if (_currentActiveKey != null)
             {
-                // We restart this specific coroutine for the cooldown
-                // (It's safe because we just stopped the old ones)
                 StartCoroutine(ResetKeyCooldown(_currentActiveKey));
                 _currentActiveKey = null;
             }
@@ -237,10 +221,16 @@ namespace MyGame.Obstacles
         private IEnumerator ResetKeyCooldown(Key keyToReset)
         {
             yield return new WaitForSeconds(2.0f);
-            if (keyToReset != null)
-            {
-                keyToReset.EnableInteraction();
-            }
+            if (keyToReset != null) keyToReset.EnableInteraction();
+        }
+
+        public void ForceClose()
+        {
+            StopAllCoroutines();
+            if (_questionPopup != null) _questionPopup.style.display = DisplayStyle.None;
+            _isProcessingAnswer = false;
+            _currentActiveKey = null;
+            Time.timeScale = 1;
         }
     }
 }

@@ -110,5 +110,16 @@ namespace MyGame.Enemy
             }
             _overlayContainer.style.opacity = targetOpacity;
         }
+
+        public void HideImmediate()
+        {
+            StopAllCoroutines();
+            _isHunting = false;
+
+            if (_overlayContainer != null)
+            {
+                _overlayContainer.style.opacity = 0; // Instant hide
+            }
+        }
     }
 }

@@ -8,20 +8,24 @@ namespace MyGame.Player
 {
     public class PlayerMovement : MonoBehaviour
     {
-        public InputAction MoveAction;
+        [Header("Input Settings")]
+        public InputAction MoveAction;     // WASD, Arrows, Left Stick, D-Pad
+        public InputAction InteractAction; // E, Enter, Xbox X, Xbox A
 
-        public float walkSpeed = 1.0f;
+        [Header("Movement Settings")]
+        public float walkSpeed = 2.0f;
         public float turnSpeed = 20f;
 
-        // Configuration for the speed boost
         [Header("Speed Boost Settings")]
-        public float boostDuration = 5.0f;   // How long the boost lasts (in seconds)
-        public float boostMultiplier = 2.0f; // How much faster you go (2.0 = double speed)
+        public float boostDuration = 5.0f;
+        public float boostMultiplier = 2.0f;
 
-        // Slot to drag your sound file into
         [Header("Audio Settings")]
         public AudioClip keyPickupSound;
         public AudioClip doorOpenSound;
+
+        // --- HIDING SYSTEM ---
+        public bool IsHidden { get; private set; } = false;
 
         private List<string> m_OwnedKeys = new List<string>();
 
@@ -31,50 +35,102 @@ namespace MyGame.Player
         Quaternion m_Rotation = Quaternion.identity;
         AudioSource m_AudioSource;
 
-        // To store the normal speed and track the active timer
         private float m_BaseWalkSpeed;
         private Coroutine m_BoostCoroutine;
 
+        private void Awake()
+        {
+            // --- 1. SETUP DEFAULT BINDINGS ---
+            if (MoveAction == null || MoveAction.bindings.Count == 0)
+            {
+                MoveAction = new InputAction("Move");
+                MoveAction.AddBinding("<Gamepad>/leftStick");
+                MoveAction.AddBinding("<Gamepad>/dpad");
+                MoveAction.AddCompositeBinding("2DVector")
+                    .With("Up", "<Keyboard>/w")
+                    .With("Down", "<Keyboard>/s")
+                    .With("Left", "<Keyboard>/a")
+                    .With("Right", "<Keyboard>/d");
+                MoveAction.AddCompositeBinding("2DVector")
+                    .With("Up", "<Keyboard>/upArrow")
+                    .With("Down", "<Keyboard>/downArrow")
+                    .With("Left", "<Keyboard>/leftArrow")
+                    .With("Right", "<Keyboard>/rightArrow");
+            }
+
+            if (InteractAction == null || InteractAction.bindings.Count == 0)
+            {
+                InteractAction = new InputAction("Interact");
+                InteractAction.AddBinding("<Gamepad>/buttonWest");  // Xbox X
+                InteractAction.AddBinding("<Gamepad>/buttonSouth"); // Xbox A
+                InteractAction.AddBinding("<Keyboard>/e");
+                InteractAction.AddBinding("<Keyboard>/enter");
+            }
+        }
+
+        void OnEnable()
+        {
+            MoveAction.Enable();
+            InteractAction.Enable();
+        }
+
+        void OnDisable()
+        {
+            MoveAction.Disable();
+            InteractAction.Disable();
+        }
+
         void Start()
         {
+            // --- CRITICAL FIX: RESET GAME STATE ON LEVEL START ---
+            // 1. Ensure Time is running (Fixes "Frozen" bug)
+            Time.timeScale = 1.0f;
+
+            // 2. Lock Cursor so Mouse Look works (Fixes "Can't Turn" bug)
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+            UnityEngine.Cursor.visible = false;
+
+            // 3. Ensure player isn't stuck in "Hidden" mode
+            IsHidden = false;
+            // ----------------------------------------------------
+
             m_Rigidbody = GetComponent<Rigidbody>();
             m_Animator = GetComponentInChildren<Animator>();
             m_AudioSource = GetComponent<AudioSource>();
 
-            // Remember the starting speed so we can reset to it later
             m_BaseWalkSpeed = walkSpeed;
-
-            MoveAction.Enable();
         }
 
         void FixedUpdate()
         {
-            Vector2 pos = MoveAction.ReadValue<Vector2>();
+            if (IsHidden) return;
 
-            float horizontal = pos.x;
-            float vertical = pos.y;
+            // 1. Read Movement Input
+            Vector2 moveInput = MoveAction.ReadValue<Vector2>();
+
+            float horizontal = moveInput.x;
+            float vertical = moveInput.y;
 
             m_Movement.Set(horizontal, 0f, vertical);
             m_Movement.Normalize();
 
-            bool hasHorizontalInput = !Mathf.Approximately(horizontal, 0f);
-            bool hasVerticalInput = !Mathf.Approximately(vertical, 0f);
-            bool isWalking = hasHorizontalInput || hasVerticalInput;
+            bool hasMovementInput = m_Movement.magnitude > 0.1f;
 
-            m_Animator.SetBool("IsWalking", isWalking);
+            m_Animator.SetBool("IsWalking", hasMovementInput);
 
+            // 2. Handle Rotation
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, m_Movement, turnSpeed * Time.deltaTime, 0f);
             m_Rotation = Quaternion.LookRotation(desiredForward);
 
             m_Rigidbody.MoveRotation(m_Rotation);
+
+            // 3. Handle Movement Speed
             m_Rigidbody.MovePosition(m_Rigidbody.position + m_Movement * walkSpeed * Time.deltaTime);
 
-            if (isWalking)
+            // 4. Audio
+            if (hasMovementInput)
             {
-                if (!m_AudioSource.isPlaying)
-                {
-                    m_AudioSource.Play();
-                }
+                if (!m_AudioSource.isPlaying) m_AudioSource.Play();
             }
             else
             {
@@ -82,23 +138,38 @@ namespace MyGame.Player
             }
         }
 
+        // --- HIDING LOGIC ---
+        public void SetHidingState(bool hidden, Vector3 hidingPos)
+        {
+            IsHidden = hidden;
+
+            if (hidden)
+            {
+                m_Rigidbody.linearVelocity = Vector3.zero;
+                m_Rigidbody.isKinematic = true;
+                transform.position = hidingPos;
+                ForceIdle();
+            }
+            else
+            {
+                m_Rigidbody.isKinematic = false;
+            }
+        }
+
+        public void ForceIdle()
+        {
+            if (m_Animator != null) m_Animator.SetBool("IsWalking", false);
+            if (m_AudioSource != null) m_AudioSource.Stop();
+        }
+
+        // --- KEY LOGIC ---
         public void AddKey(string keyName)
         {
             m_OwnedKeys.Add(keyName);
+            if (keyPickupSound != null && m_AudioSource != null) m_AudioSource.PlayOneShot(keyPickupSound);
 
-            // Play the sound once
-            if (keyPickupSound != null && m_AudioSource != null)
-            {
-                m_AudioSource.PlayOneShot(keyPickupSound);
-            }
-
-            // Find the UI script and tell it to remove an icon
             KeyDisplay display = FindFirstObjectByType<KeyDisplay>();
-
-            if (display != null)
-            {
-                display.RemoveKeyIcon();
-            }
+            if (display != null) display.RemoveKeyIcon();
         }
 
         public bool OwnKey(string keyName)
@@ -106,58 +177,24 @@ namespace MyGame.Player
             return m_OwnedKeys.Contains(keyName);
         }
 
-        // The Door script will call this function before it destroys itself
         public void PlayDoorSound()
         {
-            if (doorOpenSound != null && m_AudioSource != null)
-            {
-                m_AudioSource.PlayOneShot(doorOpenSound);
-            }
+            if (doorOpenSound != null && m_AudioSource != null) m_AudioSource.PlayOneShot(doorOpenSound);
         }
 
-        // Helper method to manage the boost logic
+        // --- POWERUP LOGIC ---
         public void HandleSpeedBoost()
         {
-            // If a boost is already active, stop it so we can restart the timer
-            if (m_BoostCoroutine != null)
-            {
-                StopCoroutine(m_BoostCoroutine);
-            }
-
-            // Start the new boost routine
+            if (m_BoostCoroutine != null) StopCoroutine(m_BoostCoroutine);
             m_BoostCoroutine = StartCoroutine(SpeedBoostRoutine());
         }
 
-        // The Coroutine that handles the timing
         private IEnumerator SpeedBoostRoutine()
         {
-            // 1. Increase speed
             walkSpeed = m_BaseWalkSpeed * boostMultiplier;
-            Debug.Log("Speed Boost Activated! Current Speed: " + walkSpeed);
-
-            // 2. Wait for X seconds
             yield return new WaitForSeconds(boostDuration);
-
-            // 3. Reset speed
             walkSpeed = m_BaseWalkSpeed;
             m_BoostCoroutine = null;
-            Debug.Log("Speed Boost Ended. Reset to: " + walkSpeed);
-        }
-
-        // Call this from the UI script to stop animations/sounds immediately
-        public void ForceIdle()
-        {
-            // 1. Force the animator to the Idle state
-            if (m_Animator != null)
-            {
-                m_Animator.SetBool("IsWalking", false);
-            }
-
-            // 2. Kill the walking sound immediately
-            if (m_AudioSource != null)
-            {
-                m_AudioSource.Stop();
-            }
         }
     }
 }

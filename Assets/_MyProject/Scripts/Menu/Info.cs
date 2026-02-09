@@ -1,49 +1,66 @@
-using System;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 namespace MyGame.Menu
 {
-    namespace StealthGame
+    public class Info : MonoBehaviour
     {
-        public class Info : MonoBehaviour
+        private UIDocument m_UIDocument;
+        private Button m_BackButton;
+
+        [Header("Scene References")]
+        [SerializeField] private GameObject m_MenuUI;
+
+        // --- Controller Input ---
+        public InputAction cancelAction;
+
+        private void Awake()
         {
-            private UIDocument m_UIDocument;
-            private Button m_BackButton;
+            m_UIDocument = GetComponent<UIDocument>();
 
-            [Header("Scene References")]
-            [Tooltip("The Main Menu GameObject to turn back on when Back is clicked.")]
-            [SerializeField] private GameObject m_MenuUI;
-
-            private void Awake()
+            if (cancelAction == null || cancelAction.bindings.Count == 0)
             {
-                m_UIDocument = GetComponent<UIDocument>();
+                cancelAction = new InputAction("Cancel");
+                cancelAction.AddBinding("<Keyboard>/escape");
+                cancelAction.AddBinding("<Gamepad>/buttonEast"); // Xbox B
             }
+        }
 
-            private void OnEnable()
+        private void OnEnable()
+        {
+            cancelAction.Enable();
+
+            if (m_UIDocument == null) return;
+
+            m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
+
+            if (m_BackButton != null)
             {
-                if (m_UIDocument == null) return;
+                m_BackButton.clicked += OnBackButtonClicked;
 
-                // Make sure the button in your Info UXML is named 'BackButton'
-                m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
-
-                if (m_BackButton != null)
-                {
-                    m_BackButton.clicked += OnBackButtonClicked;
-                }
+                // Auto-Focus for Controller
+                m_BackButton.schedule.Execute(() => m_BackButton.Focus());
             }
+        }
 
-            private void OnBackButtonClicked()
+        private void OnDisable()
+        {
+            cancelAction.Disable();
+        }
+
+        private void Update()
+        {
+            if (cancelAction.WasPerformedThisFrame())
             {
-                // Turn the Main Menu back on
-                if (m_MenuUI != null)
-                {
-                    m_MenuUI.SetActive(true);
-                }
-
-                // Turn this Info window off
-                gameObject.SetActive(false);
+                OnBackButtonClicked();
             }
+        }
+
+        private void OnBackButtonClicked()
+        {
+            if (m_MenuUI != null) m_MenuUI.SetActive(true);
+            gameObject.SetActive(false);
         }
     }
 }

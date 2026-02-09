@@ -67,21 +67,21 @@
       "id": "key0004",
       "q_id": "k4_a",
       "text": "Key 4 (Var A): What is cos(0°)?",
-      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "answers": [ "0", "1", "-1", "0.5" ],
       "correctIndex": 1
     },
     {
       "id": "key0004",
       "q_id": "k4_b",
       "text": "Key 4 (Var B): What is cos(90°)?",
-      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "answers": [ "0", "1", "-1", "0.5" ],
       "correctIndex": 0
     },
     {
       "id": "key0004",
       "q_id": "k4_c",
       "text": "Key 4 (Var C): What is cos(180°)?",
-      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "answers": [ "0", "1", "-1", "0.5" ],
       "correctIndex": 2
     },
     {
@@ -190,63 +190,63 @@
       "correctIndex": 0
     },
     {
-      "id": "key0010",
+      "id": "key00010",
       "q_id": "k10_a",
       "text": "Key 10 (Var A): Which is an Integer?",
       "answers": [ "-5", "0.5", "√2" ],
       "correctIndex": 0
     },
     {
-      "id": "key0010",
+      "id": "key00010",
       "q_id": "k10_b",
       "text": "Key 10 (Var B): Which number is Irrational?",
       "answers": [ "4", "1.5", "π" ],
       "correctIndex": 2
     },
     {
-      "id": "key0010",
+      "id": "key00010",
       "q_id": "k10_c",
       "text": "Key 10 (Var C): Which is a Natural number?",
       "answers": [ "-10", "10", "1.5" ],
       "correctIndex": 1
     },
     {
-      "id": "key0011",
+      "id": "key00011",
       "q_id": "k11_a",
       "text": "Key 11 (Var A): Simplify: 2(x + 3)",
       "answers": [ "2x + 3", "2x + 6" ],
       "correctIndex": 1
     },
     {
-      "id": "key0011",
+      "id": "key00011",
       "q_id": "k11_b",
       "text": "Key 11 (Var B): Simplify: 3(x - 2)",
       "answers": [ "3x - 6", "3x - 2" ],
       "correctIndex": 0
     },
     {
-      "id": "key0011",
+      "id": "key00011",
       "q_id": "k11_c",
       "text": "Key 11 (Var C): Simplify: 5(2x + 1)",
       "answers": [ "10x + 1", "10x + 5" ],
       "correctIndex": 1
     },
     {
-      "id": "key0012",
+      "id": "key00012",
       "q_id": "k12_a",
       "text": "Key 12 (Var A): What is 10% of 200?",
       "answers": [ "10", "20", "50", "100", "2" ],
       "correctIndex": 1
     },
     {
-      "id": "key0012",
+      "id": "key00012",
       "q_id": "k12_b",
       "text": "Key 12 (Var B): What is 50% of 80?",
       "answers": [ "40", "20", "60", "10" ],
       "correctIndex": 0
     },
     {
-      "id": "key0012",
+      "id": "key00012",
       "q_id": "k12_c",
       "text": "Key 12 (Var C): What is 25% of 100?",
       "answers": [ "50", "75", "25", "20" ],

@@ -1,60 +1,67 @@
-using System;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 namespace MyGame.Menu
 {
-    namespace StealthGame
+    public class Credits : MonoBehaviour
     {
-        public class Credits : MonoBehaviour
+        private UIDocument m_UIDocument;
+        private Button m_BackButton;
+
+        [Header("Scene References")]
+        [SerializeField] private GameObject m_MenuUI;
+
+        // --- Controller Input ---
+        public InputAction cancelAction;
+
+        private void Awake()
         {
-            // Reference to the UI Document component on this GameObject
-            private UIDocument m_UIDocument;
+            m_UIDocument = GetComponent<UIDocument>();
 
-            // Reference to the Back Button inside the UI
-            private Button m_BackButton;
-
-            [Header("Scene References")]
-            [Tooltip("Drag the 'MenuUI' GameObject here from your Hierarchy. This allows us to turn the Main Menu back on.")]
-            [SerializeField] private GameObject m_MenuUI;
-
-            private void Awake()
+            // Setup Back Button (Esc or Xbox B)
+            if (cancelAction == null || cancelAction.bindings.Count == 0)
             {
-                m_UIDocument = GetComponent<UIDocument>();
+                cancelAction = new InputAction("Cancel");
+                cancelAction.AddBinding("<Keyboard>/escape");
+                cancelAction.AddBinding("<Gamepad>/buttonEast"); // Xbox B
             }
+        }
 
-            private void OnEnable()
+        private void OnEnable()
+        {
+            cancelAction.Enable();
+
+            if (m_UIDocument == null) return;
+
+            m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
+
+            if (m_BackButton != null)
             {
-                // Verify the UI Document exists
-                if (m_UIDocument == null) return;
+                m_BackButton.clicked += OnBackButtonClicked;
 
-                // Find the button named "BackButton" in your UXML hierarchy
-                // Note: This searches for the Element Name you set in the Hierarchy, not the text displayed.
-                m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
-
-                // If found, assign the click event
-                if (m_BackButton != null)
-                {
-                    m_BackButton.clicked += OnBackButtonClicked;
-                }
-                else
-                {
-                    Debug.LogError("Could not find a button named 'BackButton' in the UXML. Please check the name in UI Builder.");
-                }
+                // Auto-Focus for Controller
+                m_BackButton.schedule.Execute(() => m_BackButton.Focus());
             }
+        }
 
-            // This method runs when the button is clicked
-            private void OnBackButtonClicked()
+        private void OnDisable()
+        {
+            cancelAction.Disable();
+        }
+
+        private void Update()
+        {
+            if (cancelAction.WasPerformedThisFrame())
             {
-                // 1. Enable the Main Menu UI
-                if (m_MenuUI != null)
-                {
-                    m_MenuUI.SetActive(true);
-                }
-
-                // 2. Disable this Credits UI
-                gameObject.SetActive(false);
+                OnBackButtonClicked();
             }
+        }
+
+        private void OnBackButtonClicked()
+        {
+            if (m_MenuUI != null) m_MenuUI.SetActive(true);
+            gameObject.SetActive(false);
         }
     }
 }

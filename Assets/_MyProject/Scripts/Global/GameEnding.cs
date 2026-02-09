@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using MyGame.Obstacles; // For KeyQuizUI
+using MyGame.Enemy;     // For VisualHuntManager
+using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using UnityEngine.InputSystem;
 
 namespace MyGame.Global
 {
@@ -17,8 +19,7 @@ namespace MyGame.Global
         // Name of the next scene to load
         public string nextSceneName = null;
 
-        [Header("Controller Inputs (The Poll)")]
-        // We will map these in the Inspector
+        [Header("Controller Inputs")]
         public InputAction confirmAction; // Xbox 'A' / Enter
         public InputAction cancelAction;  // Xbox 'B' / Backspace
 
@@ -77,9 +78,32 @@ namespace MyGame.Global
             }
         }
 
+        // --- UPDATED CAUGHT METHOD (With Cleanup & Fix) ---
         public void CaughtPlayer()
         {
+            if (m_IsPlayerCaught) return;
             m_IsPlayerCaught = true;
+
+            // 1. Kill the "Searching..." text and Eye Icon
+            var huntManager = FindFirstObjectByType<VisualHuntManager>();
+            if (huntManager != null) huntManager.HideImmediate();
+
+            // 2. Kill any open Questions
+            var quizUI = FindFirstObjectByType<KeyQuizUI>();
+            if (quizUI != null) quizUI.ForceClose();
+
+            // 3. Hide the HUD (Timer & Footer Keys)
+            if (m_TimerLabel != null) m_TimerLabel.style.display = DisplayStyle.None;
+
+            if (uiDocument != null)
+            {
+                var footer = uiDocument.rootVisualElement.Q<VisualElement>("Footer");
+                if (footer != null) footer.style.display = DisplayStyle.None;
+            }
+
+            // 4. THE FIX: Explicitly say "UnityEngine.Cursor"
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
         }
 
         void Update()
@@ -111,7 +135,7 @@ namespace MyGame.Global
                 m_HasAudioPlayed = true;
             }
 
-            // Ensure cursor is visible for PC
+            // THE FIX: Explicitly say "UnityEngine.Cursor"
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
 
