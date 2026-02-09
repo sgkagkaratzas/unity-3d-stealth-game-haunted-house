@@ -80,7 +80,6 @@ namespace MyGame.Menu
                     else
                     {
                         m_ExitButton.style.display = DisplayStyle.Flex;
-                        m_ExitButton.text = "Exit";
                         m_ExitButton.clicked += () => Application.Quit();
                         AddHoverAnimation(m_ExitButton);
                     }

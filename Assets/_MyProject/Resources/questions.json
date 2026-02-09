@@ -1,0 +1,256 @@
+﻿{
+  "questions": [
+    {
+      "id": "key0001",
+      "q_id": "k1_a",
+      "text": "Key 1 (Var A): What is 2 + 2?",
+      "answers": [ "3", "4", "5" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0001",
+      "q_id": "k1_b",
+      "text": "Key 1 (Var B): What is 3 + 1?",
+      "answers": [ "4", "6", "2" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0001",
+      "q_id": "k1_c",
+      "text": "Key 1 (Var C): What is 5 + 3?",
+      "answers": [ "7", "9", "8" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0002",
+      "q_id": "k2_a",
+      "text": "Key 2 (Var A): Solve for x: 2x = 10",
+      "answers": [ "2", "5", "8" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0002",
+      "q_id": "k2_b",
+      "text": "Key 2 (Var B): What is half of 10?",
+      "answers": [ "5", "2", "1" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0002",
+      "q_id": "k2_c",
+      "text": "Key 2 (Var C): Solve for x: x + 4 = 9",
+      "answers": [ "4", "5", "6" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0003",
+      "q_id": "k3_a",
+      "text": "Key 3 (Var A): Evaluate: √144",
+      "answers": [ "10", "11", "12", "14" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0003",
+      "q_id": "k3_b",
+      "text": "Key 3 (Var B): Evaluate: √81",
+      "answers": [ "8", "9", "7", "6" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0003",
+      "q_id": "k3_c",
+      "text": "Key 3 (Var C): Evaluate: √49",
+      "answers": [ "7", "6", "8", "5" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0004",
+      "q_id": "k4_a",
+      "text": "Key 4 (Var A): What is cos(0°)?",
+      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0004",
+      "q_id": "k4_b",
+      "text": "Key 4 (Var B): What is cos(90°)?",
+      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0004",
+      "q_id": "k4_c",
+      "text": "Key 4 (Var C): What is cos(180°)?",
+      "answers": [ "0", "1", "-1", "0.5", "Undefined" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0005",
+      "q_id": "k5_a",
+      "text": "Key 5 (Var A): Which represents the Pythagorean theorem?",
+      "answers": [ "E = mc²", "a² + b² = c²", "y = mx + b" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0005",
+      "q_id": "k5_b",
+      "text": "Key 5 (Var B): In a right triangle, if sides are 3 and 4, the hypotenuse is:",
+      "answers": [ "5", "6", "7" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0005",
+      "q_id": "k5_c",
+      "text": "Key 5 (Var C): The longest side of a right triangle is called:",
+      "answers": [ "Leg", "Adjacent", "Hypotenuse" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0006",
+      "q_id": "k6_a",
+      "text": "Key 6 (Var A): What is the value of π (Pi) approx?",
+      "answers": [ "3.14", "3.41", "3.14159", "3.00" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0006",
+      "q_id": "k6_b",
+      "text": "Key 6 (Var B): Which formula calculates the Circumference of a circle?",
+      "answers": [ "πr²", "2πr", "2r" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0006",
+      "q_id": "k6_c",
+      "text": "Key 6 (Var C): Which formula calculates the Area of a circle?",
+      "answers": [ "πr²", "2πr", "πd" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0007",
+      "q_id": "k7_a",
+      "text": "Key 7 (Var A): Solve: 10 / 2 + 3",
+      "answers": [ "2", "5", "8" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0007",
+      "q_id": "k7_b",
+      "text": "Key 7 (Var B): Solve: 5 + 2 * 3",
+      "answers": [ "21", "11", "10" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0007",
+      "q_id": "k7_c",
+      "text": "Key 7 (Var C): Solve: (4 + 6) / 2",
+      "answers": [ "5", "8", "2" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0008",
+      "q_id": "k8_a",
+      "text": "Key 8 (Var A): If x = 3, what is x³?",
+      "answers": [ "6", "9", "27" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0008",
+      "q_id": "k8_b",
+      "text": "Key 8 (Var B): If x = 2, what is x³?",
+      "answers": [ "6", "4", "8" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0008",
+      "q_id": "k8_c",
+      "text": "Key 8 (Var C): What is 4²?",
+      "answers": [ "8", "16", "12" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0009",
+      "q_id": "k9_a",
+      "text": "Key 9 (Var A): What is the sum of angles in a triangle?",
+      "answers": [ "90°", "180°", "360°", "100°" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0009",
+      "q_id": "k9_b",
+      "text": "Key 9 (Var B): A right angle is how many degrees?",
+      "answers": [ "45°", "90°", "180°" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0009",
+      "q_id": "k9_c",
+      "text": "Key 9 (Var C): An equilateral triangle has angles of:",
+      "answers": [ "60°", "90°", "45°" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0010",
+      "q_id": "k10_a",
+      "text": "Key 10 (Var A): Which is an Integer?",
+      "answers": [ "-5", "0.5", "√2" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0010",
+      "q_id": "k10_b",
+      "text": "Key 10 (Var B): Which number is Irrational?",
+      "answers": [ "4", "1.5", "π" ],
+      "correctIndex": 2
+    },
+    {
+      "id": "key0010",
+      "q_id": "k10_c",
+      "text": "Key 10 (Var C): Which is a Natural number?",
+      "answers": [ "-10", "10", "1.5" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0011",
+      "q_id": "k11_a",
+      "text": "Key 11 (Var A): Simplify: 2(x + 3)",
+      "answers": [ "2x + 3", "2x + 6" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0011",
+      "q_id": "k11_b",
+      "text": "Key 11 (Var B): Simplify: 3(x - 2)",
+      "answers": [ "3x - 6", "3x - 2" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0011",
+      "q_id": "k11_c",
+      "text": "Key 11 (Var C): Simplify: 5(2x + 1)",
+      "answers": [ "10x + 1", "10x + 5" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0012",
+      "q_id": "k12_a",
+      "text": "Key 12 (Var A): What is 10% of 200?",
+      "answers": [ "10", "20", "50", "100", "2" ],
+      "correctIndex": 1
+    },
+    {
+      "id": "key0012",
+      "q_id": "k12_b",
+      "text": "Key 12 (Var B): What is 50% of 80?",
+      "answers": [ "40", "20", "60", "10" ],
+      "correctIndex": 0
+    },
+    {
+      "id": "key0012",
+      "q_id": "k12_c",
+      "text": "Key 12 (Var C): What is 25% of 100?",
+      "answers": [ "50", "75", "25", "20" ],
+      "correctIndex": 2
+    }
+  ]
+}

@@ -99,9 +99,6 @@ namespace MyGame.Player
             {
                 display.RemoveKeyIcon();
             }
-
-            // Trigger the speed boost when a key is added
-            HandleSpeedBoost();
         }
 
         public bool OwnKey(string keyName)
@@ -119,7 +116,7 @@ namespace MyGame.Player
         }
 
         // Helper method to manage the boost logic
-        private void HandleSpeedBoost()
+        public void HandleSpeedBoost()
         {
             // If a boost is already active, stop it so we can restart the timer
             if (m_BoostCoroutine != null)
@@ -145,6 +142,22 @@ namespace MyGame.Player
             walkSpeed = m_BaseWalkSpeed;
             m_BoostCoroutine = null;
             Debug.Log("Speed Boost Ended. Reset to: " + walkSpeed);
+        }
+
+        // Call this from the UI script to stop animations/sounds immediately
+        public void ForceIdle()
+        {
+            // 1. Force the animator to the Idle state
+            if (m_Animator != null)
+            {
+                m_Animator.SetBool("IsWalking", false);
+            }
+
+            // 2. Kill the walking sound immediately
+            if (m_AudioSource != null)
+            {
+                m_AudioSource.Stop();
+            }
         }
     }
 }
