@@ -6,8 +6,9 @@ namespace MyGame.Obstacles
     [System.Serializable]
     public class QuestionData
     {
-        public string id;           // Links to the Key (e.g. "key0001")
-        public string q_id;         // Unique ID for this specific question (e.g. "k1_a")
+        // id links this question to a Key's KeyName
+        public string id;
+        public string q_id;
         public string text;
         public string[] answers;
         public int correctIndex;

@@ -16,8 +16,7 @@ namespace MyGame.Obstacles
         [SerializeField] private AudioClip failSound;
 
         [Header("Colors")]
-        // The color when you are HOVERING or NAVIGATING to a button
-        [SerializeField] private Color selectedColor = new Color(0.3f, 0.3f, 0.3f, 1f); // Dark Gray
+        [SerializeField] private Color selectedColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         [SerializeField] private Color correctColor = new Color(0.18f, 0.8f, 0.44f);
         [SerializeField] private Color wrongColor = new Color(0.9f, 0.3f, 0.23f);
         [SerializeField] private Color mercyColor = new Color(1f, 0.84f, 0f);
@@ -39,6 +38,7 @@ namespace MyGame.Obstacles
         {
             _document = GetComponent<UIDocument>();
             if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+            // Load question pool from Resources/questions.json (TextAsset)
             LoadQuestions();
         }
 
@@ -56,7 +56,6 @@ namespace MyGame.Obstacles
 
         private void Update()
         {
-            // Close on B / Escape
             if (_questionPopup.style.display == DisplayStyle.Flex && !_isProcessingAnswer)
             {
                 bool cancelPressed = false;
@@ -114,22 +113,18 @@ namespace MyGame.Obstacles
                 newBtn.text = _currentQuestionData.answers[i];
                 newBtn.AddToClassList("answer-button");
 
-                // Base Style
                 newBtn.style.height = 50;
                 newBtn.style.marginBottom = 10;
                 newBtn.style.fontSize = 18;
-                newBtn.style.backgroundColor = StyleKeyword.Null; // Clear background
+                newBtn.style.backgroundColor = StyleKeyword.Null;
                 newBtn.style.borderTopLeftRadius = 10;
                 newBtn.style.borderTopRightRadius = 10;
                 newBtn.style.borderBottomLeftRadius = 10;
                 newBtn.style.borderBottomRightRadius = 10;
 
-                // --- VISUAL FEEDBACK LOGIC ---
-                // 1. Mouse Hover
                 newBtn.RegisterCallback<MouseEnterEvent>(evt => newBtn.style.backgroundColor = selectedColor);
                 newBtn.RegisterCallback<MouseLeaveEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
 
-                // 2. Controller/Keyboard Focus
                 newBtn.RegisterCallback<FocusEvent>(evt => newBtn.style.backgroundColor = selectedColor);
                 newBtn.RegisterCallback<BlurEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
 
@@ -146,7 +141,6 @@ namespace MyGame.Obstacles
             _questionPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0;
 
-            // Auto-Focus First Button
             if (_activeButtons.Count > 0)
             {
                 _activeButtons[0].schedule.Execute(() => _activeButtons[0].Focus());
@@ -175,7 +169,6 @@ namespace MyGame.Obstacles
 
                 yield return new WaitForSecondsRealtime(1.0f);
 
-                // Show Mercy Hint
                 int correctIdx = _currentQuestionData.correctIndex;
                 if (correctIdx < _activeButtons.Count)
                 {

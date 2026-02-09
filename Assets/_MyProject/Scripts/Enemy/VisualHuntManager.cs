@@ -33,7 +33,6 @@ namespace MyGame.Enemy
 
         private void CreateVisuals(VisualElement root)
         {
-            // 1. Create the Transparent Container Layer
             _overlayContainer = new VisualElement();
             _overlayContainer.name = "HuntContainer";
             _overlayContainer.style.position = Position.Absolute;
@@ -42,14 +41,12 @@ namespace MyGame.Enemy
             _overlayContainer.style.backgroundColor = new StyleColor(Color.clear);
             _overlayContainer.style.opacity = 0;
 
-            // CRITICAL: Ignore clicks on the container
             _overlayContainer.pickingMode = PickingMode.Ignore;
 
             _overlayContainer.style.alignItems = Align.Center;
             _overlayContainer.style.justifyContent = Justify.FlexStart;
             _overlayContainer.style.paddingTop = 50;
 
-            // 2. Create the Icon
             if (searchIcon != null)
             {
                 VisualElement icon = new VisualElement();
@@ -59,20 +56,17 @@ namespace MyGame.Enemy
                 icon.style.height = 64;
                 icon.style.marginBottom = 10;
 
-                // CRITICAL: Ignore clicks on the icon
                 icon.pickingMode = PickingMode.Ignore;
 
                 _overlayContainer.Add(icon);
             }
 
-            // 3. Create the Text
             Label text = new Label("”≈ ÿ¡◊Õ≈…...");
             text.style.fontSize = 40;
             text.style.color = new StyleColor(Color.white);
             text.style.unityFontStyleAndWeight = FontStyle.Bold;
             text.style.textShadow = new TextShadow { offset = new Vector2(2, 2), color = new Color(0, 0, 0, 0.8f) };
 
-            // CRITICAL: Ignore clicks on the text (This is what was blocking your button!)
             text.pickingMode = PickingMode.Ignore;
 
             _overlayContainer.Add(text);
@@ -84,7 +78,7 @@ namespace MyGame.Enemy
             if (_isHunting) return;
             _isHunting = true;
             StopAllCoroutines();
-            // Fades the container (and its text/icon children) in
+            // Fade the container in (icon + text). Uses coroutine for smooth transition.
             StartCoroutine(FadeTo(1f));
         }
 
@@ -93,7 +87,7 @@ namespace MyGame.Enemy
             if (!_isHunting) return;
             _isHunting = false;
             StopAllCoroutines();
-            // Fades the container out
+            // Fade the container out smoothly
             StartCoroutine(FadeTo(0f));
         }
 
@@ -105,6 +99,7 @@ namespace MyGame.Enemy
             while (t < 1)
             {
                 t += Time.deltaTime * fadeSpeed;
+                // Interpolate opacity over time
                 _overlayContainer.style.opacity = Mathf.Lerp(startOpacity, targetOpacity, t);
                 yield return null;
             }
@@ -118,7 +113,7 @@ namespace MyGame.Enemy
 
             if (_overlayContainer != null)
             {
-                _overlayContainer.style.opacity = 0; // Instant hide
+                _overlayContainer.style.opacity = 0;
             }
         }
     }

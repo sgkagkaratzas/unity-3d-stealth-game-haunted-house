@@ -31,13 +31,13 @@ namespace MyGame.Menu
 
             var root = m_UIDocument.rootVisualElement;
 
-            // 1. Setup Start Button
             m_StartButton = root.Q<Button>("StartButton");
             if (m_StartButton != null)
             {
                 m_StartButton.clicked += () =>
                 {
                     GlobalGameData.GameTimer = 0f;
+                    // Generate a simple unique player name if none provided
                     string shortHash = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
                     GlobalGameData.PlayerName = "User_" + shortHash;
 
@@ -46,11 +46,9 @@ namespace MyGame.Menu
                 };
                 AddHoverAnimation(m_StartButton);
 
-                // --- Auto-Focus for Controller ---
                 m_StartButton.schedule.Execute(() => m_StartButton.Focus());
             }
 
-            // 2. Setup Credits Button
             m_CreditsButton = root.Q<Button>("CreditsButton");
             if (m_CreditsButton != null)
             {
@@ -58,7 +56,6 @@ namespace MyGame.Menu
                 AddHoverAnimation(m_CreditsButton);
             }
 
-            // 3. Setup Info Button
             m_InfoButton = root.Q<Button>("InfoButton");
             if (m_InfoButton != null)
             {
@@ -66,7 +63,6 @@ namespace MyGame.Menu
                 AddHoverAnimation(m_InfoButton);
             }
 
-            // 4. Setup Exit Button
             m_ExitButton = root.Q<Button>("ExitButton");
             if (m_ExitButton != null)
             {
@@ -97,7 +93,6 @@ namespace MyGame.Menu
                 new EasingFunction(EasingMode.EaseOutBack)
             };
 
-            // Mouse Hover
             button.RegisterCallback<MouseEnterEvent>(evt =>
             {
                 button.style.scale = new Scale(new Vector3(1.1f, 1.1f, 1f));
@@ -107,7 +102,6 @@ namespace MyGame.Menu
                 button.style.scale = new Scale(Vector3.one);
             });
 
-            // Controller Focus
             button.RegisterCallback<FocusEvent>(evt =>
             {
                 button.style.scale = new Scale(new Vector3(1.1f, 1.1f, 1f));

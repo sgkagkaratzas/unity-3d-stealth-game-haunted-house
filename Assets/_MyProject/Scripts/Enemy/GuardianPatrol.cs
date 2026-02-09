@@ -26,7 +26,7 @@ namespace MyGame.Enemy
         [Tooltip("Set this to 'Default' or whatever your walls are on.")]
         public LayerMask obstacleLayer = 1;
 
-        // Internal Variables
+        // Internal variables
         private Rigidbody m_RigidBody;
         private int m_CurrentWaypointIndex;
         private bool m_IsInvestigating = false;
@@ -42,8 +42,7 @@ namespace MyGame.Enemy
         {
             m_RigidBody = GetComponent<Rigidbody>();
             m_RigidBody.isKinematic = true;
-
-            // Default Layer Mask to 'Default' if not set
+            // Default layer mask if not set
             if (obstacleLayer == 0) obstacleLayer = 1;
 
             if (waypoints.Length > 0)
@@ -74,7 +73,7 @@ namespace MyGame.Enemy
 
             m_IsWaiting = false;
             m_IsInvestigating = true;
-            m_IsSearchingPrecise = false; // Run Fast
+            m_IsSearchingPrecise = false;
             m_TargetPosition = targetPos;
 
             Debug.Log("Guardian: Target acquired! Sprinting now.");
@@ -142,37 +141,30 @@ namespace MyGame.Enemy
         {
             m_IsSearchingRoutineRunning = true;
 
-            // 1. Arrived at the Key. Stop running.
             m_IsWaiting = true;
-            m_IsSearchingPrecise = true; // Switch to SLOW speed
+            m_IsSearchingPrecise = true;
             Debug.Log("Guardian: Arrived. Switching to search mode.");
 
             yield return new WaitForSeconds(1.0f);
 
-            Vector3 keyPosition = transform.position; // We are currently standing at the key
+            Vector3 keyPosition = transform.position;
 
-            // --- SMART SEARCH POINT 1 ---
             Vector3 bestPointA = FindValidSearchPoint(keyPosition);
             MoveToSearchPoint(bestPointA);
 
-            // Wait until arrived OR timeout (prevents getting stuck forever)
             yield return StartCoroutine(WaitForArrivalOrTimeout(2.5f));
 
-            // Look around
             m_IsWaiting = true;
             yield return new WaitForSeconds(investigationWaitTime);
 
-            // --- SMART SEARCH POINT 2 ---
             Vector3 bestPointB = FindValidSearchPoint(keyPosition);
             MoveToSearchPoint(bestPointB);
 
             yield return StartCoroutine(WaitForArrivalOrTimeout(2.5f));
 
-            // Look around
             m_IsWaiting = true;
             yield return new WaitForSeconds(investigationWaitTime);
 
-            // --- END INVESTIGATION ---
             Debug.Log("Guardian: Nothing here. Returning to patrol.");
 
             if (_visualManager != null) _visualManager.EndHunt();
@@ -196,7 +188,7 @@ namespace MyGame.Enemy
             m_IsWaiting = false;
         }
 
-        // Waits until we reach the target OR the timer runs out (stuck protection)
+        // Waits until we reach the target OR the timer runs out
         IEnumerator WaitForArrivalOrTimeout(float maxDuration)
         {
             float timer = 0f;
@@ -207,35 +199,32 @@ namespace MyGame.Enemy
             }
         }
 
-        // --- NEW SMART ALGORITHM ---
-        // Tries 10 times to find a spot that is NOT blocked by a wall
+        // Smart algorithm: tries multiple times to find a valid search spot
+        // This method randomly selects search points while avoiding obstacles
         Vector3 FindValidSearchPoint(Vector3 center)
         {
             for (int i = 0; i < 10; i++)
             {
-                // 1. Pick a random spot
+                // pick a random spot
                 Vector3 randomDir = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)).normalized;
                 Vector3 candidatePos = center + randomDir * searchRadius;
-
-                // 2. SAFETY CHECK 1: Raycast from Key to Spot
-                // Ensure there isn't a wall between the key and the spot
+                // safety check 1: raycast from key to spot
+                // Ensure the path to the candidate position is clear of obstacles
                 if (Physics.Linecast(center + Vector3.up * 0.5f, candidatePos + Vector3.up * 0.5f, obstacleLayer))
                 {
                     continue; // Hit a wall, try next random spot
                 }
-
-                // 3. SAFETY CHECK 2: Raycast from Enemy to Spot
-                // Ensure the enemy can walk straight there without hitting a wall
+                // safety check 2: raycast from enemy to spot
+                // Check if the enemy can reach the candidate position
                 if (Physics.Linecast(transform.position + Vector3.up * 0.5f, candidatePos + Vector3.up * 0.5f, obstacleLayer))
                 {
                     continue; // Path blocked, try next
                 }
-
-                // If we passed both checks, this is a valid spot!
+                // if both checks pass, this is valid
                 return candidatePos;
             }
-
-            // If we failed 10 times (very tight corner), just stay where we are.
+            // failed attempts: stay at center
+            // If no valid search points are found, return to the original position
             return center;
         }
     }

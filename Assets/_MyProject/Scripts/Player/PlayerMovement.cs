@@ -9,22 +9,22 @@ namespace MyGame.Player
     public class PlayerMovement : MonoBehaviour
     {
         [Header("Input Settings")]
-        public InputAction MoveAction;     // WASD, Arrows, Left Stick, D-Pad
-        public InputAction InteractAction; // E, Enter, Xbox X, Xbox A
+        public InputAction MoveAction;
+        public InputAction InteractAction;
 
         [Header("Movement Settings")]
-        public float walkSpeed = 2.0f;
+        public float walkSpeed = 10f;
         public float turnSpeed = 20f;
 
         [Header("Speed Boost Settings")]
-        public float boostDuration = 5.0f;
+        public float boostDuration = 3.0f;
         public float boostMultiplier = 2.0f;
 
         [Header("Audio Settings")]
         public AudioClip keyPickupSound;
         public AudioClip doorOpenSound;
 
-        // --- HIDING SYSTEM ---
+        // Hiding system
         public bool IsHidden { get; private set; } = false;
 
         private List<string> m_OwnedKeys = new List<string>();
@@ -40,7 +40,7 @@ namespace MyGame.Player
 
         private void Awake()
         {
-            // --- 1. SETUP DEFAULT BINDINGS ---
+            // Setup default input bindings when none are assigned in the Inspector
             if (MoveAction == null || MoveAction.bindings.Count == 0)
             {
                 MoveAction = new InputAction("Move");
@@ -60,9 +60,10 @@ namespace MyGame.Player
 
             if (InteractAction == null || InteractAction.bindings.Count == 0)
             {
+                // Interact uses common controller and keyboard keys
                 InteractAction = new InputAction("Interact");
-                InteractAction.AddBinding("<Gamepad>/buttonWest");  // Xbox X
-                InteractAction.AddBinding("<Gamepad>/buttonSouth"); // Xbox A
+                InteractAction.AddBinding("<Gamepad>/buttonWest");
+                InteractAction.AddBinding("<Gamepad>/buttonSouth");
                 InteractAction.AddBinding("<Keyboard>/e");
                 InteractAction.AddBinding("<Keyboard>/enter");
             }
@@ -82,17 +83,14 @@ namespace MyGame.Player
 
         void Start()
         {
-            // --- CRITICAL FIX: RESET GAME STATE ON LEVEL START ---
-            // 1. Ensure Time is running (Fixes "Frozen" bug)
+            // Reset default game state on level start:
+            // - Ensure time is running
+            // - Lock cursor for gameplay
+            // - Clear hidden state
             Time.timeScale = 1.0f;
-
-            // 2. Lock Cursor so Mouse Look works (Fixes "Can't Turn" bug)
             UnityEngine.Cursor.lockState = CursorLockMode.Locked;
             UnityEngine.Cursor.visible = false;
-
-            // 3. Ensure player isn't stuck in "Hidden" mode
             IsHidden = false;
-            // ----------------------------------------------------
 
             m_Rigidbody = GetComponent<Rigidbody>();
             m_Animator = GetComponentInChildren<Animator>();
@@ -105,7 +103,6 @@ namespace MyGame.Player
         {
             if (IsHidden) return;
 
-            // 1. Read Movement Input
             Vector2 moveInput = MoveAction.ReadValue<Vector2>();
 
             float horizontal = moveInput.x;
@@ -118,16 +115,13 @@ namespace MyGame.Player
 
             m_Animator.SetBool("IsWalking", hasMovementInput);
 
-            // 2. Handle Rotation
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, m_Movement, turnSpeed * Time.deltaTime, 0f);
             m_Rotation = Quaternion.LookRotation(desiredForward);
 
             m_Rigidbody.MoveRotation(m_Rotation);
 
-            // 3. Handle Movement Speed
             m_Rigidbody.MovePosition(m_Rigidbody.position + m_Movement * walkSpeed * Time.deltaTime);
 
-            // 4. Audio
             if (hasMovementInput)
             {
                 if (!m_AudioSource.isPlaying) m_AudioSource.Play();
@@ -138,7 +132,7 @@ namespace MyGame.Player
             }
         }
 
-        // --- HIDING LOGIC ---
+        // Hiding logic
         public void SetHidingState(bool hidden, Vector3 hidingPos)
         {
             IsHidden = hidden;
@@ -162,7 +156,7 @@ namespace MyGame.Player
             if (m_AudioSource != null) m_AudioSource.Stop();
         }
 
-        // --- KEY LOGIC ---
+        // Key logic
         public void AddKey(string keyName)
         {
             m_OwnedKeys.Add(keyName);
@@ -182,7 +176,7 @@ namespace MyGame.Player
             if (doorOpenSound != null && m_AudioSource != null) m_AudioSource.PlayOneShot(doorOpenSound);
         }
 
-        // --- POWERUP LOGIC ---
+        // Powerup logic
         public void HandleSpeedBoost()
         {
             if (m_BoostCoroutine != null) StopCoroutine(m_BoostCoroutine);

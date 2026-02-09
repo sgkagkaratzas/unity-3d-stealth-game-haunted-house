@@ -6,24 +6,25 @@ namespace MyGame.Menu
 {
     public class Info : MonoBehaviour
     {
+        // Comments cleaned: removed non-essential comments
         private UIDocument m_UIDocument;
         private Button m_BackButton;
 
         [Header("Scene References")]
         [SerializeField] private GameObject m_MenuUI;
 
-        // --- Controller Input ---
         public InputAction cancelAction;
 
         private void Awake()
         {
+            // Setup cancel input binding when missing (Esc / Gamepad B)
             m_UIDocument = GetComponent<UIDocument>();
 
             if (cancelAction == null || cancelAction.bindings.Count == 0)
             {
                 cancelAction = new InputAction("Cancel");
                 cancelAction.AddBinding("<Keyboard>/escape");
-                cancelAction.AddBinding("<Gamepad>/buttonEast"); // Xbox B
+                cancelAction.AddBinding("<Gamepad>/buttonEast");
             }
         }
 
@@ -38,8 +39,6 @@ namespace MyGame.Menu
             if (m_BackButton != null)
             {
                 m_BackButton.clicked += OnBackButtonClicked;
-
-                // Auto-Focus for Controller
                 m_BackButton.schedule.Execute(() => m_BackButton.Focus());
             }
         }

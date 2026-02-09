@@ -11,28 +11,25 @@ namespace MyGame.UI
         private Button m_HelpButton;
         private Button m_CloseButton;
 
-        // --- NEW: Input Actions for Controller Support ---
-        public InputAction toggleHelpAction; // 'H' or 'Select'
-        public InputAction cancelAction;     // 'Esc' or 'B'
+        public InputAction toggleHelpAction;
+        public InputAction cancelAction;
 
         private void Awake()
         {
             m_UIDocument = GetComponent<UIDocument>();
 
-            // 1. Setup Toggle (H or Xbox View/Select)
             if (toggleHelpAction == null || toggleHelpAction.bindings.Count == 0)
             {
                 toggleHelpAction = new InputAction("ToggleHelp");
                 toggleHelpAction.AddBinding("<Keyboard>/h");
-                toggleHelpAction.AddBinding("<Gamepad>/select"); // The "View" button (Small button left of center)
+                toggleHelpAction.AddBinding("<Gamepad>/select");
             }
 
-            // 2. Setup Cancel (Esc or Xbox B) - to close the popup easily
             if (cancelAction == null || cancelAction.bindings.Count == 0)
             {
                 cancelAction = new InputAction("Cancel");
                 cancelAction.AddBinding("<Keyboard>/escape");
-                cancelAction.AddBinding("<Gamepad>/buttonEast"); // Xbox B
+                cancelAction.AddBinding("<Gamepad>/buttonEast");
             }
         }
 
@@ -51,7 +48,7 @@ namespace MyGame.UI
 
             if (m_HelpButton != null)
             {
-                m_HelpButton.focusable = false; // Prevent tab/controller focus on the small '?' icon during gameplay
+                m_HelpButton.focusable = false;
                 m_HelpButton.clicked += TogglePopup;
             }
 
@@ -69,13 +66,11 @@ namespace MyGame.UI
 
         private void Update()
         {
-            // 1. Toggle Button Pressed (H or Select)
             if (toggleHelpAction.WasPerformedThisFrame())
             {
                 TogglePopup();
             }
 
-            // 2. Cancel Button Pressed (B or Esc) - Only if popup is open
             if (m_HelpPopup != null && m_HelpPopup.style.display == DisplayStyle.Flex)
             {
                 if (cancelAction.WasPerformedThisFrame())
@@ -104,8 +99,6 @@ namespace MyGame.UI
                 m_HelpPopup.style.display = DisplayStyle.Flex;
                 Time.timeScale = 0f;
 
-                // --- CRITICAL FOR CONTROLLER ---
-                // Focus the Close button so the player can press 'A' (Submit) immediately
                 if (m_CloseButton != null)
                 {
                     m_CloseButton.schedule.Execute(() => m_CloseButton.Focus());

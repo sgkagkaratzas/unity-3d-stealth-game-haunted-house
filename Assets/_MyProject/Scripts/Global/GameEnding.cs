@@ -16,21 +16,20 @@ namespace MyGame.Global
         public AudioSource exitAudio;
         public AudioSource caughtAudio;
 
-        // Name of the next scene to load
         public string nextSceneName = null;
 
         [Header("Controller Inputs")]
-        public InputAction confirmAction; // Xbox 'A' / Enter
-        public InputAction cancelAction;  // Xbox 'B' / Backspace
+        public InputAction confirmAction;
+        public InputAction cancelAction;
 
         bool m_HasAudioPlayed;
         bool m_IsPlayerAtExit;
         bool m_IsPlayerCaught;
         float m_Timer;
 
-        private VisualElement m_EndScreen;    // The old fading screen
-        private VisualElement m_CaughtScreen; // The Caught screen
-        private VisualElement m_RatingPopup;  // The Yes/No Popup
+        private VisualElement m_EndScreen;
+        private VisualElement m_CaughtScreen;
+        private VisualElement m_RatingPopup;
 
         private Button m_YesButton;
         private Button m_NoButton;
@@ -45,12 +44,10 @@ namespace MyGame.Global
             m_EndScreen = root.Q<VisualElement>("EndScreen");
             m_CaughtScreen = root.Q<VisualElement>("CaughtScreen");
 
-            // 1. Find the new Popup and Buttons
             m_RatingPopup = root.Q<VisualElement>("RatingPopup");
             m_YesButton = root.Q<Button>("RatingYesButton");
             m_NoButton = root.Q<Button>("RatingNoButton");
 
-            // 2. Hook up button clicks
             if (m_YesButton != null) m_YesButton.clicked += () => OnRateClicked(true);
             if (m_NoButton != null) m_NoButton.clicked += () => OnRateClicked(false);
 
@@ -63,7 +60,6 @@ namespace MyGame.Global
                 m_UsernameLabel.text = GlobalGameData.PlayerName;
         }
 
-        // Clean up event listeners to avoid memory leaks
         void OnDestroy()
         {
             if (m_YesButton != null) m_YesButton.clicked -= () => OnRateClicked(true);
@@ -78,21 +74,17 @@ namespace MyGame.Global
             }
         }
 
-        // --- UPDATED CAUGHT METHOD (With Cleanup & Fix) ---
         public void CaughtPlayer()
         {
             if (m_IsPlayerCaught) return;
             m_IsPlayerCaught = true;
 
-            // 1. Kill the "Searching..." text and Eye Icon
             var huntManager = FindFirstObjectByType<VisualHuntManager>();
             if (huntManager != null) huntManager.HideImmediate();
 
-            // 2. Kill any open Questions
             var quizUI = FindFirstObjectByType<KeyQuizUI>();
             if (quizUI != null) quizUI.ForceClose();
 
-            // 3. Hide the HUD (Timer & Footer Keys)
             if (m_TimerLabel != null) m_TimerLabel.style.display = DisplayStyle.None;
 
             if (uiDocument != null)
@@ -101,7 +93,6 @@ namespace MyGame.Global
                 if (footer != null) footer.style.display = DisplayStyle.None;
             }
 
-            // 4. THE FIX: Explicitly say "UnityEngine.Cursor"
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
         }
@@ -110,23 +101,22 @@ namespace MyGame.Global
         {
             if (!m_IsPlayerAtExit && !m_IsPlayerCaught)
             {
+                // Accumulate total play time (in seconds, fractional) across the run
+                // This value is stored as a float for accuracy but displayed as whole seconds.
                 GlobalGameData.GameTimer += Time.deltaTime;
                 UpdateTimerLabel();
             }
 
             if (m_IsPlayerAtExit)
             {
-                // WIN CONDITION: Don't fade. Just show popup.
                 ShowRatingPopup(exitAudio);
             }
             else if (m_IsPlayerCaught)
             {
-                // LOSE CONDITION: Keep original behavior (Fade red screen -> Restart)
                 EndLevel(m_CaughtScreen, true, caughtAudio);
             }
         }
 
-        // Handles the Win Popup logic
         void ShowRatingPopup(AudioSource audioSource)
         {
             if (!m_HasAudioPlayed && audioSource != null)
@@ -135,35 +125,27 @@ namespace MyGame.Global
                 m_HasAudioPlayed = true;
             }
 
-            // THE FIX: Explicitly say "UnityEngine.Cursor"
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
 
             if (m_RatingPopup != null) m_RatingPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0f;
 
-            // 1. Check Confirm (Xbox A OR Keyboard Y)
             if (confirmAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame))
             {
                 OnRateClicked(true);
             }
 
-            // 2. Check Cancel (Xbox B OR Keyboard N)
             if (cancelAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame))
             {
                 OnRateClicked(false);
             }
         }
 
-        // Called when Yes or No is clicked
         void OnRateClicked(bool likedLevel)
         {
             Debug.Log(likedLevel ? "Player Liked the Level!" : "Player did not like the level.");
-
-            // Resume time just in case
             Time.timeScale = 1f;
-
-            // Load the next scene
             SceneManager.LoadScene(nextSceneName);
         }
 
@@ -176,7 +158,6 @@ namespace MyGame.Global
             }
         }
 
-        // Kept only for the "Caught" screen logic
         void EndLevel(VisualElement element, bool doRestart, AudioSource audioSource)
         {
             if (!m_HasAudioPlayed)
@@ -190,7 +171,7 @@ namespace MyGame.Global
 
             if (m_Timer > fadeDuration + displayImageDuration)
             {
-                Time.timeScale = 1; // Ensure time is running before load
+                Time.timeScale = 1;
                 if (doRestart)
                 {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().name);

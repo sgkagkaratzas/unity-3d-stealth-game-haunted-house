@@ -6,17 +6,15 @@ namespace MyGame.Obstacles
 {
     public class Key : MonoBehaviour
     {
-        public string KeyName; // e.g., "key0001"
+        public string KeyName;
 
         [Header("Security Settings")]
         [Tooltip("OPTIONAL: Drag the Enemy (GuardianPatrol) here. If empty, no alarm will ring.")]
         public GuardianPatrol guardianEnemy;
 
-        // Tracks how many times the student failed THIS specific key
         private int _failureCount = 0;
         public int FailureCount => _failureCount;
 
-        // Memory of the last question asked (ID)
         public string LastQuestionID { get; set; } = "";
 
         private void OnTriggerEnter(Collider other)
@@ -28,20 +26,18 @@ namespace MyGame.Obstacles
 
             if (quizUI != null)
             {
+                // Disable collider to prevent re-trigger while question UI is open
                 GetComponent<Collider>().enabled = false;
                 quizUI.ShowQuestion(this, player);
             }
         }
 
-        // Called by UI when player answers WRONG
         public void RegisterFailure()
         {
             _failureCount++;
 
-            // --- THE NEW ALARM LOGIC ---
             if (guardianEnemy != null)
             {
-                // Tell the enemy to run to THIS key's position
                 guardianEnemy.AlertToPosition(transform.position);
             }
         }
@@ -53,26 +49,19 @@ namespace MyGame.Obstacles
 
         public void ResolveKey(bool isMercy)
         {
-            // If it is a Mercy pickup AND there is an enemy coming...
             if (isMercy && guardianEnemy != null)
             {
-                // 1. Disable the collider so the player can't click it again
                 GetComponent<Collider>().enabled = false;
-
-                // 2. Keep the visual mesh ON so the ghost can "investigate" it
-                // 3. Start a timer to destroy it AFTER the ghost leaves
                 StartCoroutine(DestroyAfterGhostLeaves());
             }
             else
             {
-                // Normal Success: Pick it up immediately
                 Destroy(gameObject);
             }
         }
 
         private System.Collections.IEnumerator DestroyAfterGhostLeaves()
         {
-            // Wait time = Enemy Reaction (5s) + Run Time (3s)
             yield return new WaitForSeconds(8.0f);
             Destroy(gameObject);
         }

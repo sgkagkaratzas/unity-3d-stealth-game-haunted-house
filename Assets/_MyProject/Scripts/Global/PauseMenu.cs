@@ -11,7 +11,7 @@ namespace MyGame.Global
         public string mainMenuSceneName = "MainMenu";
 
         [Header("Input Settings")]
-        public InputAction pauseAction; // Escape or Start
+        public InputAction pauseAction;
 
         private VisualElement m_PauseMenu;
         private Button m_ResumeButton;
@@ -19,14 +19,13 @@ namespace MyGame.Global
 
         private bool m_IsPaused = false;
 
-        // --- 1. NEW: AUTO-SETUP INPUTS ---
         private void Awake()
         {
             if (pauseAction == null || pauseAction.bindings.Count == 0)
             {
                 pauseAction = new InputAction("Pause");
                 pauseAction.AddBinding("<Keyboard>/escape");
-                pauseAction.AddBinding("<Gamepad>/start"); // Xbox Start Button
+                pauseAction.AddBinding("<Gamepad>/start");
             }
         }
 
@@ -45,12 +44,9 @@ namespace MyGame.Global
             m_ResumeButton = root.Q<Button>("ResumeButton");
             m_ExitButton = root.Q<Button>("ExitButton");
 
-            // Hook up Mouse Clicks
             if (m_ResumeButton != null)
             {
                 m_ResumeButton.clicked += ResumeGame;
-
-                // Optional: Add hover animation or styling here if you want
             }
 
             if (m_ExitButton != null)
@@ -66,7 +62,6 @@ namespace MyGame.Global
 
         void Update()
         {
-            // This works even when Time.timeScale is 0 IF Input System is set to "Dynamic Update"
             if (pauseAction.WasPerformedThisFrame())
             {
                 if (m_IsPaused)
@@ -79,21 +74,18 @@ namespace MyGame.Global
         void PauseGame()
         {
             m_IsPaused = true;
-            Time.timeScale = 0f; // Freeze Game
+            Time.timeScale = 0f;
 
             if (m_PauseMenu != null)
             {
                 m_PauseMenu.style.display = DisplayStyle.Flex;
 
-                // --- CRITICAL: AUTO-FOCUS FOR CONTROLLER ---
-                // We must tell the UI System to select the button, otherwise D-Pad won't work.
                 if (m_ResumeButton != null)
                 {
                     m_ResumeButton.schedule.Execute(() => m_ResumeButton.Focus());
                 }
             }
 
-            // Unlock mouse for PC users
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
         }
@@ -101,20 +93,18 @@ namespace MyGame.Global
         void ResumeGame()
         {
             m_IsPaused = false;
-            Time.timeScale = 1f; // Unfreeze Game
+            Time.timeScale = 1f;
 
             if (m_PauseMenu != null) m_PauseMenu.style.display = DisplayStyle.None;
 
-            // Re-lock cursor for gameplay
             UnityEngine.Cursor.lockState = CursorLockMode.Locked;
             UnityEngine.Cursor.visible = false;
         }
 
         void QuitToMenu()
         {
-            Time.timeScale = 1f; // Always unfreeze before leaving
+            Time.timeScale = 1f;
 
-            // Reset Global Data
             GlobalGameData.GameTimer = 0f;
             GlobalGameData.PlayerName = "";
 

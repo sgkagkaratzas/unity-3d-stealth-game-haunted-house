@@ -12,7 +12,7 @@ namespace MyGame.Global
 
         void Start()
         {
-            // Auto-find references to avoid "NullReference" crashes
+            // Auto-locate player script and GameEnding to avoid manual wiring in the scene
             PlayerMovement playerScript = FindFirstObjectByType<PlayerMovement>();
             if (playerScript != null) player = playerScript.transform;
 
@@ -24,7 +24,6 @@ namespace MyGame.Global
 
         void OnTriggerEnter(Collider other)
         {
-            // Use root comparison to be safe against child colliders
             if (player != null && other.transform.root == player.root)
             {
                 m_IsPlayerInRange = true;
@@ -47,7 +46,6 @@ namespace MyGame.Global
 
             if (m_IsPlayerInRange)
             {
-                // Calculate direction to player's chest (Vector3.up raises the target from feet to chest)
                 Vector3 direction = (player.position + Vector3.up) - transform.position;
 
                 Ray ray = new Ray(transform.position, direction);
@@ -55,7 +53,6 @@ namespace MyGame.Global
 
                 if (Physics.Raycast(ray, out raycastHit))
                 {
-                    // Check if we hit the player (or any part of the player)
                     if (raycastHit.collider.transform.root == player.root)
                     {
                         Debug.Log("Caught, calling GameEnding...");

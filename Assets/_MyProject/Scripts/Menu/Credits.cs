@@ -12,19 +12,18 @@ namespace MyGame.Menu
         [Header("Scene References")]
         [SerializeField] private GameObject m_MenuUI;
 
-        // --- Controller Input ---
-        public InputAction cancelAction;
+        public InputAction cancelAction; // Added for input handling
 
         private void Awake()
         {
+            // Setup default cancel input (Esc / Gamepad B) when not provided in Inspector
             m_UIDocument = GetComponent<UIDocument>();
 
-            // Setup Back Button (Esc or Xbox B)
             if (cancelAction == null || cancelAction.bindings.Count == 0)
             {
                 cancelAction = new InputAction("Cancel");
                 cancelAction.AddBinding("<Keyboard>/escape");
-                cancelAction.AddBinding("<Gamepad>/buttonEast"); // Xbox B
+                cancelAction.AddBinding("<Gamepad>/buttonEast");
             }
         }
 
@@ -39,8 +38,6 @@ namespace MyGame.Menu
             if (m_BackButton != null)
             {
                 m_BackButton.clicked += OnBackButtonClicked;
-
-                // Auto-Focus for Controller
                 m_BackButton.schedule.Execute(() => m_BackButton.Focus());
             }
         }
