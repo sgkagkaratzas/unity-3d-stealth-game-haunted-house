@@ -1,5 +1,6 @@
-﻿using MyGame.Obstacles; // For KeyQuizUI
-using MyGame.Enemy;     // For VisualHuntManager
+﻿using MyGame.Enemy;
+using MyGame.Logging;
+using MyGame.Obstacles;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -15,7 +16,6 @@ namespace MyGame.Global
         public UIDocument uiDocument;
         public AudioSource exitAudio;
         public AudioSource caughtAudio;
-
         public string nextSceneName = null;
 
         [Header("Controller Inputs")]
@@ -30,20 +30,16 @@ namespace MyGame.Global
         private VisualElement m_EndScreen;
         private VisualElement m_CaughtScreen;
         private VisualElement m_RatingPopup;
-
         private Button m_YesButton;
         private Button m_NoButton;
-
         private Label m_TimerLabel;
         private Label m_UsernameLabel;
 
         void Start()
         {
             var root = uiDocument.rootVisualElement;
-
             m_EndScreen = root.Q<VisualElement>("EndScreen");
             m_CaughtScreen = root.Q<VisualElement>("CaughtScreen");
-
             m_RatingPopup = root.Q<VisualElement>("RatingPopup");
             m_YesButton = root.Q<Button>("RatingYesButton");
             m_NoButton = root.Q<Button>("RatingNoButton");
@@ -53,11 +49,9 @@ namespace MyGame.Global
 
             m_TimerLabel = root.Q<Label>("TimerLabel");
             m_UsernameLabel = root.Q<Label>("UsernameLabel");
-
             UpdateTimerLabel();
 
-            if (m_UsernameLabel != null)
-                m_UsernameLabel.text = GlobalGameData.PlayerName;
+            if (m_UsernameLabel != null) m_UsernameLabel.text = GlobalGameData.PlayerName;
         }
 
         void OnDestroy()
@@ -68,9 +62,13 @@ namespace MyGame.Global
 
         void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject == player)
+            if (other.gameObject == player && !m_IsPlayerAtExit)
             {
                 m_IsPlayerAtExit = true;
+#if UNITY_EDITOR || UNITY_STANDALONE
+                var logger = LslLogger.Instance;
+                if (logger != null) logger.LogAndRelease(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Success");
+#endif
             }
         }
 
@@ -79,6 +77,11 @@ namespace MyGame.Global
             if (m_IsPlayerCaught) return;
             m_IsPlayerCaught = true;
 
+#if UNITY_EDITOR || UNITY_STANDALONE
+            var logger = LslLogger.Instance;
+            if (logger != null) logger.LogAndRelease(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught");
+#endif
+
             var huntManager = FindFirstObjectByType<VisualHuntManager>();
             if (huntManager != null) huntManager.HideImmediate();
 
@@ -86,39 +89,38 @@ namespace MyGame.Global
             if (quizUI != null) quizUI.ForceClose();
 
             if (m_TimerLabel != null) m_TimerLabel.style.display = DisplayStyle.None;
-
             if (uiDocument != null)
             {
                 var footer = uiDocument.rootVisualElement.Q<VisualElement>("Footer");
                 if (footer != null) footer.style.display = DisplayStyle.None;
             }
-
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
+
+            // Trigger caught screen immediately
+            EndLevel(m_CaughtScreen, true, caughtAudio, forceImmediate: true);
         }
 
         void Update()
         {
+            // Step test pulse
+#if UNITY_EDITOR || UNITY_STANDALONE
+            if (Input.GetKeyDown(KeyCode.L)) LslLogger.Instance?.SendPulse("Step1_Success");
+#endif
+
             if (!m_IsPlayerAtExit && !m_IsPlayerCaught)
             {
-                // Accumulate total play time (in seconds, fractional) across the run
-                // This value is stored as a float for accuracy but displayed as whole seconds.
                 GlobalGameData.GameTimer += Time.deltaTime;
                 UpdateTimerLabel();
             }
 
-            if (m_IsPlayerAtExit)
-            {
-                ShowRatingPopup(exitAudio);
-            }
-            else if (m_IsPlayerCaught)
-            {
-                EndLevel(m_CaughtScreen, true, caughtAudio);
-            }
+            if (m_IsPlayerAtExit) ShowRatingPopup(exitAudio);
         }
 
         void ShowRatingPopup(AudioSource audioSource)
         {
+            if (m_RatingPopup == null) return;
+
             if (!m_HasAudioPlayed && audioSource != null)
             {
                 audioSource.Play();
@@ -128,25 +130,28 @@ namespace MyGame.Global
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
 
-            if (m_RatingPopup != null) m_RatingPopup.style.display = DisplayStyle.Flex;
+            m_RatingPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0f;
 
-            if (confirmAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame))
-            {
-                OnRateClicked(true);
-            }
-
-            if (cancelAction.WasPerformedThisFrame() || (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame))
-            {
-                OnRateClicked(false);
-            }
+            // Controller input
+            if (confirmAction.WasPerformedThisFrame()) OnRateClicked(true);
+            if (cancelAction.WasPerformedThisFrame()) OnRateClicked(false);
         }
 
         void OnRateClicked(bool likedLevel)
         {
-            Debug.Log(likedLevel ? "Player Liked the Level!" : "Player did not like the level.");
+            // Ensure timeScale restored
             Time.timeScale = 1f;
-            SceneManager.LoadScene(nextSceneName);
+
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                SceneManager.LoadScene(nextSceneName);
+            }
+            else
+            {
+                // Fallback: reload current scene
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
         }
 
         void UpdateTimerLabel()
@@ -158,24 +163,32 @@ namespace MyGame.Global
             }
         }
 
-        void EndLevel(VisualElement element, bool doRestart, AudioSource audioSource)
+        void EndLevel(VisualElement element, bool doRestart, AudioSource audioSource, bool forceImmediate = false)
         {
-            if (!m_HasAudioPlayed)
+            if (element == null) return;
+
+            if (!m_HasAudioPlayed && audioSource != null)
             {
                 audioSource.Play();
                 m_HasAudioPlayed = true;
             }
 
-            m_Timer += Time.deltaTime;
-            element.style.opacity = m_Timer / fadeDuration;
-
-            if (m_Timer > fadeDuration + displayImageDuration)
+            if (forceImmediate)
             {
-                Time.timeScale = 1;
+                element.style.opacity = 1f;
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                m_Timer += Time.unscaledDeltaTime;
+                element.style.opacity = Mathf.Clamp01(m_Timer / fadeDuration);
+            }
+
+            if (m_Timer > fadeDuration + displayImageDuration || forceImmediate)
+            {
+                Time.timeScale = 1f;
                 if (doRestart)
-                {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-                }
             }
         }
     }
