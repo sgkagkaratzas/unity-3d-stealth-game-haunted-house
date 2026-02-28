@@ -85,11 +85,13 @@ namespace MyGame.Player
         {
             // Reset default game state on level start:
             // - Ensure time is running
-            // - Lock cursor for gameplay
-            // - Clear hidden state
             Time.timeScale = 1.0f;
-            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
-            UnityEngine.Cursor.visible = false;
+
+            // - UNLOCK cursor so mouse works generally in game
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
+
+            // - Clear hidden state
             IsHidden = false;
 
             m_Rigidbody = GetComponent<Rigidbody>();
@@ -101,7 +103,8 @@ namespace MyGame.Player
 
         void FixedUpdate()
         {
-            if (IsHidden) return;
+            // If player is hidden or game is paused (UI open), ignore input
+            if (IsHidden || Time.timeScale == 0f) return;
 
             Vector2 moveInput = MoveAction.ReadValue<Vector2>();
 
