@@ -38,7 +38,7 @@ namespace MyGame.Obstacles
 
             if (guardianEnemy != null)
             {
-                guardianEnemy.AlertToPosition(transform.position);
+                guardianEnemy.AlertToPosition(transform.position, KeyName);
             }
         }
 

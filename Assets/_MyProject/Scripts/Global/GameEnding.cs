@@ -62,7 +62,7 @@ namespace MyGame.Global
 
         void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject == player && !m_IsPlayerAtExit)
+            if (other.gameObject == player && !m_IsPlayerAtExit && !m_IsPlayerCaught)
             {
                 m_IsPlayerAtExit = true;
 #if UNITY_EDITOR || UNITY_STANDALONE
@@ -82,32 +82,31 @@ namespace MyGame.Global
             if (logger != null) logger.LogAndRelease(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught");
 #endif
 
-            var huntManager = FindFirstObjectByType<VisualHuntManager>();
-            if (huntManager != null) huntManager.HideImmediate();
-
-            var quizUI = FindFirstObjectByType<KeyQuizUI>();
-            if (quizUI != null) quizUI.ForceClose();
-
             if (m_TimerLabel != null) m_TimerLabel.style.display = DisplayStyle.None;
             if (uiDocument != null)
             {
                 var footer = uiDocument.rootVisualElement.Q<VisualElement>("Footer");
                 if (footer != null) footer.style.display = DisplayStyle.None;
             }
+
+            if (m_CaughtScreen != null)
+            {
+                m_CaughtScreen.style.display = DisplayStyle.Flex;
+                m_CaughtScreen.BringToFront();
+            }
+
+            var huntManager = FindFirstObjectByType<VisualHuntManager>();
+            if (huntManager != null) huntManager.HideImmediate();
+
+            var quizUI = FindFirstObjectByType<KeyQuizUI>();
+            if (quizUI != null) quizUI.ForceClose();
+
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
-
-            // Trigger caught screen immediately
-            EndLevel(m_CaughtScreen, true, caughtAudio, forceImmediate: true);
         }
 
         void Update()
         {
-            // Step test pulse
-#if UNITY_EDITOR || UNITY_STANDALONE
-            if (Input.GetKeyDown(KeyCode.L)) LslLogger.Instance?.SendPulse("Step1_Success");
-#endif
-
             if (!m_IsPlayerAtExit && !m_IsPlayerCaught)
             {
                 GlobalGameData.GameTimer += Time.deltaTime;
@@ -115,6 +114,11 @@ namespace MyGame.Global
             }
 
             if (m_IsPlayerAtExit) ShowRatingPopup(exitAudio);
+
+            if (m_IsPlayerCaught)
+            {
+                EndLevel(m_CaughtScreen, true, caughtAudio, false);
+            }
         }
 
         void ShowRatingPopup(AudioSource audioSource)
@@ -133,25 +137,17 @@ namespace MyGame.Global
             m_RatingPopup.style.display = DisplayStyle.Flex;
             Time.timeScale = 0f;
 
-            // Controller input
             if (confirmAction.WasPerformedThisFrame()) OnRateClicked(true);
             if (cancelAction.WasPerformedThisFrame()) OnRateClicked(false);
         }
 
         void OnRateClicked(bool likedLevel)
         {
-            // Ensure timeScale restored
             Time.timeScale = 1f;
-
             if (!string.IsNullOrEmpty(nextSceneName))
-            {
                 SceneManager.LoadScene(nextSceneName);
-            }
             else
-            {
-                // Fallback: reload current scene
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            }
         }
 
         void UpdateTimerLabel()

@@ -167,6 +167,9 @@ namespace MyGame.Obstacles
 
                 _currentActiveKey.RegisterFailure();
 
+                var ghost = FindFirstObjectByType<MyGame.Enemy.GuardianPatrol>();
+                if (ghost != null) ghost.AlertToPosition(_currentActiveKey.transform.position, _currentActiveKey.KeyName);
+
                 yield return new WaitForSecondsRealtime(1.0f);
 
                 int correctIdx = _currentQuestionData.correctIndex;
