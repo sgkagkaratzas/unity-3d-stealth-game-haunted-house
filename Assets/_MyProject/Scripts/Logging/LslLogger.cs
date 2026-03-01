@@ -6,22 +6,7 @@ namespace MyGame.Logging
     public class LslLogger : MonoBehaviour, IEventLogger
     {
         private static LslLogger _instance;
-
-        public static LslLogger Instance
-        {
-            get
-            {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                if (_instance == null)
-                {
-                    var go = new GameObject("LslLogger");
-                    _instance = go.AddComponent<LslLogger>();
-                    DontDestroyOnLoad(go);
-                }
-#endif
-                return _instance;
-            }
-        }
+        public static LslLogger Instance => _instance;
 
         private IntPtr outlet = IntPtr.Zero;
         private IntPtr info = IntPtr.Zero;
@@ -38,34 +23,47 @@ namespace MyGame.Logging
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
-            info = LabStreamingLayer.lsl_create_streaminfo(
-                "StealthGame_Events",
-                "Markers",
-                1,
-                0,
-                LabStreamingLayer.cf_string,
-                Guid.NewGuid().ToString()
-            );
+            if (!LabStreamingLayer.IsAvailable)
+            {
+                Debug.LogWarning("LSL native library unavailable. Logging disabled.");
+                return;
+            }
 
-            outlet = LabStreamingLayer.lsl_create_outlet(info, 0, 360);
+            try
+            {
+                if (outlet == IntPtr.Zero)
+                {
+                    info = LabStreamingLayer.lsl_create_streaminfo(
+                        "StealthGame_Events",
+                        "Markers",
+                        1,
+                        0,
+                        LabStreamingLayer.cf_string,
+                        Guid.NewGuid().ToString()
+                    );
+
+                    outlet = LabStreamingLayer.lsl_create_outlet(info, 0, 360);
+                    Debug.Log("[LSL] Outlet created successfully.");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"LSL failed to create outlet: {e.Message}");
+                info = IntPtr.Zero;
+                outlet = IntPtr.Zero;
+            }
 #endif
         }
 
-        // REQUIRED by IEventLogger
         public void LogEvent(string username, float duration, string result)
         {
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (outlet == IntPtr.Zero) return;
 
-            string message = $"{username},{duration:F2},{result}";
+            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string message = $"{sceneName}|{username}|{result}|{duration:F2}|";
             LabStreamingLayer.lsl_push_sample_str(outlet, new[] { message });
 #endif
-        }
-
-        // This is what GameEnding currently calls
-        public void LogAndRelease(string username, float duration, string result)
-        {
-            LogEvent(username, duration, result);
         }
 
         public void SendPulse(string message)
@@ -73,7 +71,9 @@ namespace MyGame.Logging
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (outlet == IntPtr.Zero) return;
 
-            LabStreamingLayer.lsl_push_sample_str(outlet, new[] { message });
+            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string payload = $"{sceneName}||{message}||";
+            LabStreamingLayer.lsl_push_sample_str(outlet, new[] { payload });
 #endif
         }
 
@@ -84,6 +84,7 @@ namespace MyGame.Logging
             {
                 LabStreamingLayer.lsl_destroy_outlet(outlet);
                 outlet = IntPtr.Zero;
+                Debug.Log("[LSL] Outlet destroyed on quit.");
             }
 #endif
         }

@@ -65,10 +65,8 @@ namespace MyGame.Global
             if (other.gameObject == player && !m_IsPlayerAtExit && !m_IsPlayerCaught)
             {
                 m_IsPlayerAtExit = true;
-#if UNITY_EDITOR || UNITY_STANDALONE
-                var logger = LslLogger.Instance;
-                if (logger != null) logger.LogAndRelease(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Success");
-#endif
+                var logger = LoggerFactory.GetLogger();
+                logger?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Success");
             }
         }
 
@@ -77,10 +75,8 @@ namespace MyGame.Global
             if (m_IsPlayerCaught) return;
             m_IsPlayerCaught = true;
 
-#if UNITY_EDITOR || UNITY_STANDALONE
-            var logger = LslLogger.Instance;
-            if (logger != null) logger.LogAndRelease(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught");
-#endif
+            var logger = LoggerFactory.GetLogger();
+            logger?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught");
 
             if (m_TimerLabel != null) m_TimerLabel.style.display = DisplayStyle.None;
             if (uiDocument != null)

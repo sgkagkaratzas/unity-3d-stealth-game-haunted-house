@@ -21,10 +21,16 @@ namespace MyGame.Logging
             }
 
             Debug.LogWarning("LslLogger not found in scene. Using NullLogger.");
-#endif
 
+            // Create a new LslLogger GameObject if none found
+            var go = new GameObject("LslLogger");
+            _logger = go.AddComponent<LslLogger>();
+            Object.DontDestroyOnLoad(go);
+            return _logger;
+#else
             _logger = new NullLogger();
             return _logger;
+#endif
         }
     }
 }

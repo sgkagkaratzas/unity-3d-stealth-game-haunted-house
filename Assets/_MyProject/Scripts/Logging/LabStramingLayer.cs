@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace MyGame.Logging
 {
@@ -8,7 +9,33 @@ namespace MyGame.Logging
 #if UNITY_EDITOR || UNITY_STANDALONE
         private const string libname = "lsl";
 
-        [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+        public static readonly bool IsAvailable;
+
+        static LabStreamingLayer()
+        {
+            try
+            {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                IsAvailable = LoadLibrary("lsl.dll") != IntPtr.Zero || LoadLibrary("liblsl.dll") != IntPtr.Zero || LoadLibrary("lsl") != IntPtr.Zero;
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+                IsAvailable = dlopen("liblsl.dylib", RTLD_NOW) != IntPtr.Zero || dlopen("lsl.dylib", RTLD_NOW) != IntPtr.Zero;
+#else
+                IsAvailable = dlopen("liblsl.so", RTLD_NOW) != IntPtr.Zero || dlopen("lsl.so", RTLD_NOW) != IntPtr.Zero;
+#endif
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"LabStreamingLayer: native availability check failed: {e.Message}");
+                IsAvailable = false;
+            }
+
+            if (!IsAvailable)
+            {
+                Debug.LogWarning("LabStreamingLayer: native LSL library not found. LSL logging will be disabled.");
+            }
+        }
+
+        [DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern IntPtr lsl_create_streaminfo(
             string name,
             string type,
@@ -28,7 +55,7 @@ namespace MyGame.Logging
         [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lsl_push_sample_str(
             IntPtr outlet,
-            string[] data
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)] string[] data
         );
 
         [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
@@ -36,6 +63,21 @@ namespace MyGame.Logging
             IntPtr outlet
         );
 
+        public const int cf_string = 3;
+
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern IntPtr LoadLibrary(string lpFileName);
+#endif
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX
+        private const int RTLD_NOW = 2;
+        [DllImport("libdl")]
+        private static extern IntPtr dlopen(string fileName, int flags);
+#endif
+
+#else
+        public static readonly bool IsAvailable = false;
         public const int cf_string = 3;
 #endif
     }

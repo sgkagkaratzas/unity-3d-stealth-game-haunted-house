@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
+using MyGame.Logging;
 
 namespace MyGame.Global
 {
@@ -88,6 +89,8 @@ namespace MyGame.Global
 
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
+
+            LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Pause menu opened");
         }
 
         void ResumeGame()
@@ -99,11 +102,15 @@ namespace MyGame.Global
 
             UnityEngine.Cursor.lockState = CursorLockMode.Locked;
             UnityEngine.Cursor.visible = false;
+
+            LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Pause menu closed");
         }
 
         void QuitToMenu()
         {
             Time.timeScale = 1f;
+
+            LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Quit to main menu");
 
             GlobalGameData.GameTimer = 0f;
             GlobalGameData.PlayerName = "";

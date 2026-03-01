@@ -1,5 +1,6 @@
 using UnityEngine;
 using MyGame.Player;
+using MyGame.Logging;
 
 namespace MyGame.Global
 {
@@ -28,6 +29,7 @@ namespace MyGame.Global
             {
                 m_IsPlayerInRange = true;
                 Debug.Log("Player entered vision cone trigger.");
+                LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Player entered vision cone trigger");
             }
         }
 
@@ -37,6 +39,7 @@ namespace MyGame.Global
             {
                 m_IsPlayerInRange = false;
                 Debug.Log("Running away from vision cone.");
+                LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Player exited vision cone trigger");
             }
         }
 
@@ -56,6 +59,7 @@ namespace MyGame.Global
                     if (raycastHit.collider.transform.root == player.root)
                     {
                         Debug.Log("Caught, calling GameEnding...");
+                        LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught by observer");
                         gameEnding.CaughtPlayer();
                     }
                 }

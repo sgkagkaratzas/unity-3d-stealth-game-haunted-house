@@ -1,5 +1,6 @@
 import csv
 import sys
+from datetime import datetime
 from pylsl import StreamInlet, resolve_byprop
 
 print("Waiting for StealthGame_Events stream...")
@@ -15,18 +16,48 @@ print("Connected to LSL stream")
 print("Press Ctrl+C or close the window to exit")
 
 try:
-    with open("game_logs.csv", "a", newline="") as f:
+    timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"game_logs_{timestamp_str}.csv"
+
+    with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["lsl_timestamp", "payload"])
+
+        writer.writerow([
+            "timestamp_unix",
+            "scene_name",
+            "user_id",
+            "event_type",
+            "context",
+            "value"
+        ])
         f.flush()
 
         while True:
             sample, timestamp = inlet.pull_sample(timeout=0.5)
 
-            if sample is not None:
-                writer.writerow([timestamp, sample[0]])
-                f.flush()
-                print("LOGGED:", sample[0])
+            if not sample:
+                continue
+
+            payload = sample[0]
+            parts = payload.split("|")
+
+            scene_name = parts[0] if len(parts) > 0 else ""
+            user_id = parts[1] if len(parts) > 1 else ""
+            event_type = parts[2] if len(parts) > 2 else ""
+            context = parts[3] if len(parts) > 3 else ""
+            value = parts[4] if len(parts) > 4 else ""
+
+            writer.writerow([
+                timestamp,
+                scene_name,
+                user_id,
+                event_type,
+                context,
+                value
+            ])
+            f.flush()
+
+            print("LOGGED:", timestamp, scene_name, user_id, event_type, context, value)
 
 except KeyboardInterrupt:
     print("\nExiting cleanly...")
