@@ -2,7 +2,7 @@
 
 Welcome to the **Haunted House Gamification Project**. This is a custom-engineered puzzle-stealth game built in Unity. The player must navigate a haunted environment, evade patrolling enemies, and solve quizzes to progress. Every interaction, success, and failure is meticulously tracked in real-time for behavioral analysis.
 
-🎮 **[PLAY THE DEMO HERE](https://play.unity.com/en/games/e07aca2f-639e-4a0c-a695-f2464d706da4/aegean-gamification)**
+🎮 **[PLAY THE DEMO HERE](https://play.unity.com/en/games/e07aca2f-639e-4a0c-a695-f2464d706da4/aegean-gamification)** (contact with the author for the password)
 
 ---
 
