@@ -27,6 +27,12 @@ namespace MyGame.Global
         bool m_IsPlayerCaught;
         float m_Timer;
 
+        // Expose caught state so other components can avoid duplicate handling
+        public bool IsPlayerCaught => m_IsPlayerCaught;
+
+        // Track when the rating popup was opened (realtime, not affected by timeScale)
+        private float m_RatingPopupOpenedRealtime = -1f;
+
         private VisualElement m_EndScreen;
         private VisualElement m_CaughtScreen;
         private VisualElement m_RatingPopup;
@@ -120,7 +126,6 @@ namespace MyGame.Global
         void ShowRatingPopup(AudioSource audioSource)
         {
             if (m_RatingPopup == null) return;
-
             if (!m_HasAudioPlayed && audioSource != null)
             {
                 audioSource.Play();
@@ -130,8 +135,17 @@ namespace MyGame.Global
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
 
-            m_RatingPopup.style.display = DisplayStyle.Flex;
-            Time.timeScale = 0f;
+            // Only show & log the rating popup the first time; Update() may call this repeatedly
+            if (m_RatingPopupOpenedRealtime <= 0f)
+            {
+                m_RatingPopup.style.display = DisplayStyle.Flex;
+                Time.timeScale = 0f;
+
+                // Record when the rating popup was shown and log the open event
+                m_RatingPopupOpenedRealtime = Time.realtimeSinceStartup;
+                var loggerOpen = LoggerFactory.GetLogger();
+                loggerOpen?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Rating popup opened");
+            }
 
             if (confirmAction.WasPerformedThisFrame()) OnRateClicked(true);
             if (cancelAction.WasPerformedThisFrame()) OnRateClicked(false);
@@ -140,6 +154,20 @@ namespace MyGame.Global
         void OnRateClicked(bool likedLevel)
         {
             Time.timeScale = 1f;
+
+            // Log the user's answer and how long they spent on the rating popup
+            float spent = -1f;
+            if (m_RatingPopupOpenedRealtime > 0f)
+            {
+                spent = Time.realtimeSinceStartup - m_RatingPopupOpenedRealtime;
+                m_RatingPopupOpenedRealtime = -1f;
+            }
+
+            var logger = LoggerFactory.GetLogger();
+            string result = likedLevel ? "Rating: Yes" : "Rating: No";
+            // If we have a spent duration, send it as the duration parameter; otherwise send GameTimer
+            logger?.LogEvent(GlobalGameData.PlayerName, spent > 0f ? spent : GlobalGameData.GameTimer, result);
+
             if (!string.IsNullOrEmpty(nextSceneName))
                 SceneManager.LoadScene(nextSceneName);
             else

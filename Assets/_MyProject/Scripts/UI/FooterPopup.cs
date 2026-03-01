@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using MyGame.Logging;
 using UnityEngine.InputSystem;
 
 namespace MyGame.UI
@@ -10,6 +11,7 @@ namespace MyGame.UI
         private VisualElement m_HelpPopup;
         private Button m_HelpButton;
         private Button m_CloseButton;
+        private float m_HelpOpenedRealtime = -1f;
 
         public InputAction toggleHelpAction;
         public InputAction cancelAction;
@@ -99,6 +101,10 @@ namespace MyGame.UI
                 m_HelpPopup.style.display = DisplayStyle.Flex;
                 Time.timeScale = 0f;
 
+                // Record real time when help opened and log the opening event
+                m_HelpOpenedRealtime = Time.realtimeSinceStartup;
+                LoggerFactory.GetLogger()?.LogEvent(MyGame.Global.GlobalGameData.PlayerName, MyGame.Global.GlobalGameData.GameTimer, "Help opened");
+
                 if (m_CloseButton != null)
                 {
                     m_CloseButton.schedule.Execute(() => m_CloseButton.Focus());
@@ -112,6 +118,14 @@ namespace MyGame.UI
             {
                 m_HelpPopup.style.display = DisplayStyle.None;
                 Time.timeScale = 1f;
+
+                // Calculate time spent in help using realtime (not affected by timeScale)
+                if (m_HelpOpenedRealtime > 0f)
+                {
+                    float spent = Time.realtimeSinceStartup - m_HelpOpenedRealtime;
+                    LoggerFactory.GetLogger()?.LogEvent(MyGame.Global.GlobalGameData.PlayerName, spent, "Help closed");
+                    m_HelpOpenedRealtime = -1f;
+                }
             }
         }
     }

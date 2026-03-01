@@ -58,9 +58,14 @@ namespace MyGame.Global
                 {
                     if (raycastHit.collider.transform.root == player.root)
                     {
-                        Debug.Log("Caught, calling GameEnding...");
-                        LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught by observer");
-                        gameEnding.CaughtPlayer();
+                        // Only handle the caught event if the GameEnding hasn't already
+                        // marked the player as caught to avoid duplicate logs.
+                        if (!gameEnding.IsPlayerCaught)
+                        {
+                            Debug.Log("Caught, calling GameEnding...");
+                            LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Caught by observer");
+                            gameEnding.CaughtPlayer();
+                        }
                     }
                 }
             }

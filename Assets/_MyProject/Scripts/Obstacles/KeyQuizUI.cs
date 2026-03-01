@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using MyGame.Player;
+using MyGame.Logging;
+using MyGame.Global;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,6 +35,7 @@ namespace MyGame.Obstacles
 
         private bool _isProcessingAnswer = false;
         private List<Button> _activeButtons = new List<Button>();
+        private float _questionOpenedRealtime = -1f;
 
         private void Awake()
         {
@@ -94,6 +97,12 @@ namespace MyGame.Obstacles
                 keyInstance.LastQuestionID = _currentQuestionData.q_id;
 
                 RenderQuestion();
+                // record open time and log the question opened event
+                _questionOpenedRealtime = Time.realtimeSinceStartup;
+                var logger = LoggerFactory.GetLogger();
+                string qid = _currentQuestionData != null ? _currentQuestionData.q_id : "";
+                string keyName = keyInstance != null ? keyInstance.KeyName : "";
+                logger?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, $"Question opened;Key:{keyName};QID:{qid}");
             }
             else
             {
@@ -152,6 +161,24 @@ namespace MyGame.Obstacles
             _isProcessingAnswer = true;
             bool isCorrect = (selectedIndex == _currentQuestionData.correctIndex);
 
+            // compute time spent on question
+            float spent = -1f;
+            if (_questionOpenedRealtime > 0f)
+            {
+                spent = Time.realtimeSinceStartup - _questionOpenedRealtime;
+                _questionOpenedRealtime = -1f;
+            }
+
+            // log the answer event with indices (selected index and correct index)
+            var loggerAns = LoggerFactory.GetLogger();
+            string keyN = _currentActiveKey != null ? _currentActiveKey.KeyName : "";
+            string qidAns = _currentQuestionData != null ? _currentQuestionData.q_id : "";
+            int loggedCorrectIdx = _currentQuestionData != null ? _currentQuestionData.correctIndex : -1;
+
+            loggerAns?.LogEvent(GlobalGameData.PlayerName,
+                spent > 0f ? spent : GlobalGameData.GameTimer,
+                $"Question answered;Key:{keyN};QID:{qidAns};SelectedIndex:{selectedIndex};Correct:{isCorrect};CorrectIndex:{loggedCorrectIdx}");
+
             if (isCorrect)
             {
                 clickedButton.style.backgroundColor = new StyleColor(correctColor);
@@ -203,12 +230,28 @@ namespace MyGame.Obstacles
         private void ClosePopup()
         {
             StopAllCoroutines();
-            if (_currentActiveKey != null)
+
+            // preserve key info before clearing _currentActiveKey
+            string keyNameBefore = _currentActiveKey != null ? _currentActiveKey.KeyName : "";
+            var keyToReset = _currentActiveKey;
+
+            if (keyToReset != null)
             {
-                StartCoroutine(ResetKeyCooldown(_currentActiveKey));
-                _currentActiveKey = null;
+                StartCoroutine(ResetKeyCooldown(keyToReset));
             }
 
+            // If a question was open, log the cancel/close event with duration
+            if (_currentQuestionData != null && _questionOpenedRealtime > 0f)
+            {
+                float spentClose = Time.realtimeSinceStartup - _questionOpenedRealtime;
+                var loggerClose = LoggerFactory.GetLogger();
+                string keyC = keyNameBefore;
+                string qidC = _currentQuestionData != null ? _currentQuestionData.q_id : "";
+                loggerClose?.LogEvent(GlobalGameData.PlayerName, spentClose, $"Question canceled;Key:{keyC};QID:{qidC}");
+                _questionOpenedRealtime = -1f;
+            }
+
+            _currentActiveKey = null;
             _questionPopup.style.display = DisplayStyle.None;
             _currentQuestionData = null;
             Time.timeScale = 1;

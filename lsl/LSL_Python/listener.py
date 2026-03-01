@@ -1,19 +1,30 @@
 import csv
 import sys
 from datetime import datetime
-from pylsl import StreamInlet, resolve_byprop
+import time
+from pylsl import StreamInlet, resolve_byprop, resolve_streams
 
 print("Waiting for StealthGame_Events stream...")
 
-streams = resolve_byprop("name", "StealthGame_Events", timeout=10)
+# Keep retrying until a stream is found or user interrupts
+try:
+    while True:
+        streams = resolve_byprop("name", "StealthGame_Events", timeout=5)
+        if streams:
+            break
 
-if not streams:
-    print("ERROR: LSL stream not found")
+        # For diagnostics, list discovered streams briefly
+        found = resolve_streams()
+        names = [s.name() for s in found]
+        print(f"No matching stream yet. Known streams: {names}. Retrying...")
+        time.sleep(1)
+
+    inlet = StreamInlet(streams[0])
+    print("Connected to LSL stream")
+    print("Press Ctrl+C or close the window to exit")
+except KeyboardInterrupt:
+    print("Interrupted while waiting for stream. Exiting.")
     sys.exit(1)
-
-inlet = StreamInlet(streams[0])
-print("Connected to LSL stream")
-print("Press Ctrl+C or close the window to exit")
 
 try:
     timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.IO;
 using UnityEngine;
 
 namespace MyGame.Logging
@@ -52,10 +53,12 @@ namespace MyGame.Logging
             int max_buffered
         );
 
-        [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int lsl_push_sample_str(
             IntPtr outlet,
-            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)] string[] data
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)] string[] data,
+            double timestamp,
+            int pushthrough
         );
 
         [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]

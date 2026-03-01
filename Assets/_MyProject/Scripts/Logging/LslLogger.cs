@@ -62,7 +62,15 @@ namespace MyGame.Logging
 
             string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             string message = $"{sceneName}|{username}|{result}|{duration:F2}|";
-            LabStreamingLayer.lsl_push_sample_str(outlet, new[] { message });
+            try
+            {
+                int rc = LabStreamingLayer.lsl_push_sample_str(outlet, new[] { message }, 0.0, 1);
+                Debug.Log($"[LSL] pushed event, return code: {rc}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[LSL] push_sample_str exception: {e.Message}");
+            }
 #endif
         }
 
@@ -73,7 +81,15 @@ namespace MyGame.Logging
 
             string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             string payload = $"{sceneName}||{message}||";
-            LabStreamingLayer.lsl_push_sample_str(outlet, new[] { payload });
+            try
+            {
+                int rc = LabStreamingLayer.lsl_push_sample_str(outlet, new[] { payload }, 0.0, 1);
+                Debug.Log($"[LSL] pushed pulse, return code: {rc}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[LSL] push_sample_str exception: {e.Message}");
+            }
 #endif
         }
 

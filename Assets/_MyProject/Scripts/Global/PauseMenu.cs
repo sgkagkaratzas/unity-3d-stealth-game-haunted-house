@@ -18,6 +18,8 @@ namespace MyGame.Global
         private Button m_ResumeButton;
         private Button m_ExitButton;
 
+        private float m_ExitOpenedRealtime = -1f;
+
         private bool m_IsPaused = false;
 
         private void Awake()
@@ -52,7 +54,7 @@ namespace MyGame.Global
 
             if (m_ExitButton != null)
             {
-                m_ExitButton.clicked += QuitToMenu;
+                m_ExitButton.clicked += OnExitButtonClicked;
             }
         }
 
@@ -93,6 +95,16 @@ namespace MyGame.Global
             LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Pause menu opened");
         }
 
+        private void OnExitButtonClicked()
+        {
+            // Record when the user opened the exit action (clicked Exit)
+            m_ExitOpenedRealtime = Time.realtimeSinceStartup;
+            LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Exit menu opened");
+
+            // Proceed to quit to menu (existing behavior)
+            QuitToMenu();
+        }
+
         void ResumeGame()
         {
             m_IsPaused = false;
@@ -109,6 +121,14 @@ namespace MyGame.Global
         void QuitToMenu()
         {
             Time.timeScale = 1f;
+
+            // If exit was opened, log the closing and duration spent in the exit action
+            if (m_ExitOpenedRealtime > 0f)
+            {
+                float spent = Time.realtimeSinceStartup - m_ExitOpenedRealtime;
+                LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, spent, "Exit menu closed");
+                m_ExitOpenedRealtime = -1f;
+            }
 
             LoggerFactory.GetLogger()?.LogEvent(GlobalGameData.PlayerName, GlobalGameData.GameTimer, "Quit to main menu");
 
