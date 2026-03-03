@@ -17,7 +17,7 @@ namespace MyGame.Logging
             try
             {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                IsAvailable = LoadLibrary("lsl.dll") != IntPtr.Zero || LoadLibrary("liblsl.dll") != IntPtr.Zero || LoadLibrary("lsl") != IntPtr.Zero;
+                IsAvailable = true;
 #elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
                 IsAvailable = dlopen("liblsl.dylib", RTLD_NOW) != IntPtr.Zero || dlopen("lsl.dylib", RTLD_NOW) != IntPtr.Zero;
 #else
