@@ -144,3 +144,5 @@ The algorithm steps toward the node with the lowest F score, ensuring it explore
 
 ## 📜 Credits & Acknowledgments
 * **Original Framework:** [Unity Technologies - 3D Stealth Game Haunted House](https://assetstore.unity.com/packages/essentials/tutorial-projects/3d-stealth-game-haunted-house-143848)
+* **Sounds:** [Pixabay](https://pixabay.com)
+* **Icons:** [Google AI Nano Banana](https://gemini.google/gr/overview/image-generation)
