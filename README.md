@@ -40,7 +40,7 @@ This repository exclusively hosts the custom-developed C# scripts, AI logic, UI 
     │       │   ├── lsl.dll
     │       │   └── liblsl-1.17.5-Win_amd64.zip
     │       ├── Resources/
-    │       │   └── questions.json
+    │       │   └── game_content.json
     │       ├── UI/
     │       │   ├── MainUI.uxml
     │       │   ├── MainMenu.uxml
