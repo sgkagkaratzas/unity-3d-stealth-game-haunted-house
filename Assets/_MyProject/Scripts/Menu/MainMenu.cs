@@ -16,6 +16,11 @@ namespace MyGame.Menu
         private Button m_InfoButton;
         private Button m_ExitButton;
 
+        private Label m_TitleLabel;
+        private Label m_SubtitleLabel;
+
+        private GameDataRoot _gameData;
+
         [Header("Scene References")]
         [SerializeField] private GameObject m_CreditsUI;
         [SerializeField] private GameObject m_InfoUI;
@@ -23,6 +28,20 @@ namespace MyGame.Menu
         private void Awake()
         {
             m_UIDocument = GetComponent<UIDocument>();
+            LoadMenuData();
+        }
+
+        private void LoadMenuData()
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources!");
+            }
         }
 
         private void OnEnable()
@@ -31,6 +50,11 @@ namespace MyGame.Menu
 
             var root = m_UIDocument.rootVisualElement;
 
+            // Query Labels
+            m_TitleLabel = root.Q<Label>("Title");
+            m_SubtitleLabel = root.Q<Label>("Subtitle");
+
+            // Setup Start Button
             m_StartButton = root.Q<Button>("StartButton");
             if (m_StartButton != null)
             {
@@ -45,10 +69,10 @@ namespace MyGame.Menu
                     SceneManager.LoadScene("Scene_01");
                 };
                 AddHoverAnimation(m_StartButton);
-
                 m_StartButton.schedule.Execute(() => m_StartButton.Focus());
             }
 
+            // Setup Credits Button
             m_CreditsButton = root.Q<Button>("CreditsButton");
             if (m_CreditsButton != null)
             {
@@ -56,6 +80,7 @@ namespace MyGame.Menu
                 AddHoverAnimation(m_CreditsButton);
             }
 
+            // Setup Info Button
             m_InfoButton = root.Q<Button>("InfoButton");
             if (m_InfoButton != null)
             {
@@ -63,6 +88,7 @@ namespace MyGame.Menu
                 AddHoverAnimation(m_InfoButton);
             }
 
+            // Setup Exit Button
             m_ExitButton = root.Q<Button>("ExitButton");
             if (m_ExitButton != null)
             {
@@ -76,6 +102,22 @@ namespace MyGame.Menu
                     m_ExitButton.clicked += () => Application.Quit();
                     AddHoverAnimation(m_ExitButton);
                 }
+            }
+
+            // Inject JSON Text Content
+            if (_gameData != null && _gameData.mainMenu != null)
+            {
+                if (m_TitleLabel != null) m_TitleLabel.text = _gameData.mainMenu.title;
+                if (m_SubtitleLabel != null) m_SubtitleLabel.text = _gameData.mainMenu.subtitle;
+
+                if (m_StartButton != null && _gameData.mainMenu.buttons != null)
+                    m_StartButton.text = _gameData.mainMenu.buttons.StartButton;
+
+                if (m_InfoButton != null && _gameData.mainMenu.buttons != null)
+                    m_InfoButton.text = _gameData.mainMenu.buttons.InfoButton;
+
+                if (m_ExitButton != null && _gameData.mainMenu.buttons != null)
+                    m_ExitButton.text = _gameData.mainMenu.buttons.ExitButton;
             }
         }
 

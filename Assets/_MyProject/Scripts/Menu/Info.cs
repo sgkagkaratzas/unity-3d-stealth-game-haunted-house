@@ -1,14 +1,18 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
+using MyGame.Global;
 
 namespace MyGame.Menu
 {
     public class Info : MonoBehaviour
     {
-        // Comments cleaned: removed non-essential comments
         private UIDocument m_UIDocument;
         private Button m_BackButton;
+        private Label m_TitleLabel;
+        private Label m_InfoContent;
+
+        private GameDataRoot _gameData;
 
         [Header("Scene References")]
         [SerializeField] private GameObject m_MenuUI;
@@ -26,6 +30,21 @@ namespace MyGame.Menu
                 cancelAction.AddBinding("<Keyboard>/escape");
                 cancelAction.AddBinding("<Gamepad>/buttonEast");
             }
+
+            LoadInfoData();
+        }
+
+        private void LoadInfoData()
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources!");
+            }
         }
 
         private void OnEnable()
@@ -34,7 +53,19 @@ namespace MyGame.Menu
 
             if (m_UIDocument == null) return;
 
-            m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
+            var root = m_UIDocument.rootVisualElement;
+
+            m_TitleLabel = root.Q<Label>("TitleLabel");
+            m_InfoContent = root.Q<Label>("InfoContent");
+            m_BackButton = root.Q<Button>("BackButton");
+
+            // Inject JSON Text Content
+            if (_gameData != null && _gameData.mainMenu != null && _gameData.mainMenu.info != null)
+            {
+                if (m_TitleLabel != null) m_TitleLabel.text = _gameData.mainMenu.info.TitleLabel;
+                if (m_InfoContent != null) m_InfoContent.text = _gameData.mainMenu.info.CreditsScroll;
+                if (m_BackButton != null) m_BackButton.text = _gameData.mainMenu.info.BackButton;
+            }
 
             if (m_BackButton != null)
             {

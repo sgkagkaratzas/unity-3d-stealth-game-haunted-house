@@ -15,11 +15,12 @@ namespace MyGame.Global
         public InputAction pauseAction;
 
         private VisualElement m_PauseMenu;
+        private Label m_PauseContent;
         private Button m_ResumeButton;
         private Button m_ExitButton;
 
+        private GameDataRoot _gameData;
         private float m_ExitOpenedRealtime = -1f;
-
         private bool m_IsPaused = false;
 
         private void Awake()
@@ -29,6 +30,21 @@ namespace MyGame.Global
                 pauseAction = new InputAction("Pause");
                 pauseAction.AddBinding("<Keyboard>/escape");
                 pauseAction.AddBinding("<Gamepad>/start");
+            }
+
+            LoadPauseMenuData();
+        }
+
+        private void LoadPauseMenuData()
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources!");
             }
         }
 
@@ -44,8 +60,18 @@ namespace MyGame.Global
 
             var root = uiDocument.rootVisualElement;
             m_PauseMenu = root.Q<VisualElement>("PauseMenu");
+
+            m_PauseContent = root.Q<Label>("PauseContent");
             m_ResumeButton = root.Q<Button>("ResumeButton");
             m_ExitButton = root.Q<Button>("ExitButton");
+
+            // Inject JSON Text Content
+            if (_gameData != null && _gameData.scene != null && _gameData.scene.PauseMenu != null)
+            {
+                if (m_PauseContent != null) m_PauseContent.text = _gameData.scene.PauseMenu.PauseContent;
+                if (m_ResumeButton != null) m_ResumeButton.text = _gameData.scene.PauseMenu.ResumeButton;
+                if (m_ExitButton != null) m_ExitButton.text = _gameData.scene.PauseMenu.ExitButton;
+            }
 
             if (m_ResumeButton != null)
             {

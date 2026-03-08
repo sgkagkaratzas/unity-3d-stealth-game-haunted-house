@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
+using MyGame.Global;
 
 namespace MyGame.Menu
 {
@@ -8,6 +9,10 @@ namespace MyGame.Menu
     {
         private UIDocument m_UIDocument;
         private Button m_BackButton;
+        private Label m_TitleLabel;
+        private Label m_CreditsContent;
+
+        private GameDataRoot _gameData;
 
         [Header("Scene References")]
         [SerializeField] private GameObject m_MenuUI;
@@ -25,6 +30,21 @@ namespace MyGame.Menu
                 cancelAction.AddBinding("<Keyboard>/escape");
                 cancelAction.AddBinding("<Gamepad>/buttonEast");
             }
+
+            LoadCreditsData();
+        }
+
+        private void LoadCreditsData()
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources!");
+            }
         }
 
         private void OnEnable()
@@ -33,7 +53,19 @@ namespace MyGame.Menu
 
             if (m_UIDocument == null) return;
 
-            m_BackButton = m_UIDocument.rootVisualElement.Q<Button>("BackButton");
+            var root = m_UIDocument.rootVisualElement;
+
+            m_TitleLabel = root.Q<Label>("TitleLabel");
+            m_CreditsContent = root.Q<Label>("CreditsContent");
+            m_BackButton = root.Q<Button>("BackButton");
+
+            // Inject JSON Text Content
+            if (_gameData != null && _gameData.mainMenu != null && _gameData.mainMenu.credits != null)
+            {
+                if (m_TitleLabel != null) m_TitleLabel.text = _gameData.mainMenu.credits.TitleLabel;
+                if (m_CreditsContent != null) m_CreditsContent.text = _gameData.mainMenu.credits.CreditsScroll;
+                if (m_BackButton != null) m_BackButton.text = _gameData.mainMenu.credits.BackButton;
+            }
 
             if (m_BackButton != null)
             {

@@ -36,19 +36,34 @@ namespace MyGame.Global
         private VisualElement m_EndScreen;
         private VisualElement m_CaughtScreen;
         private VisualElement m_RatingPopup;
+        private Label m_RatingContentLabel;
         private Button m_YesButton;
         private Button m_NoButton;
         private Label m_TimerLabel;
         private Label m_UsernameLabel;
 
+        private GameDataRoot _gameData;
+
         void Start()
         {
+            LoadGameData();
+
             var root = uiDocument.rootVisualElement;
             m_EndScreen = root.Q<VisualElement>("EndScreen");
             m_CaughtScreen = root.Q<VisualElement>("CaughtScreen");
             m_RatingPopup = root.Q<VisualElement>("RatingPopup");
+
+            m_RatingContentLabel = root.Q<Label>("RatingContent");
             m_YesButton = root.Q<Button>("RatingYesButton");
             m_NoButton = root.Q<Button>("RatingNoButton");
+
+            // Inject JSON Text Content
+            if (_gameData != null && _gameData.scene != null && _gameData.scene.RatingPopup != null)
+            {
+                if (m_RatingContentLabel != null) m_RatingContentLabel.text = _gameData.scene.RatingPopup.RatingContent;
+                if (m_YesButton != null) m_YesButton.text = _gameData.scene.RatingPopup.RatingYesButton;
+                if (m_NoButton != null) m_NoButton.text = _gameData.scene.RatingPopup.RatingNoButton;
+            }
 
             if (m_YesButton != null) m_YesButton.clicked += () => OnRateClicked(true);
             if (m_NoButton != null) m_NoButton.clicked += () => OnRateClicked(false);
@@ -58,6 +73,19 @@ namespace MyGame.Global
             UpdateTimerLabel();
 
             if (m_UsernameLabel != null) m_UsernameLabel.text = GlobalGameData.PlayerName;
+        }
+
+        private void LoadGameData()
+        {
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources folder!");
+            }
         }
 
         void OnDestroy()

@@ -30,7 +30,8 @@ namespace MyGame.Obstacles
 
         private Key _currentActiveKey;
         private PlayerMovement _currentPlayer;
-        private QuestionList _allQuestions;
+
+        private GameDataRoot _gameData;
         private QuestionData _currentQuestionData;
 
         private bool _isProcessingAnswer = false;
@@ -54,7 +55,14 @@ namespace MyGame.Obstacles
 
             if (_questionLabel != null) _questionLabel.pickingMode = PickingMode.Ignore;
 
-            root.Q<Button>("CancelQuizButton").clicked += ClosePopup;
+            Button cancelBtn = root.Q<Button>("CancelQuizButton");
+
+            if (_gameData != null && _gameData.scene != null && _gameData.scene.QuestionPopup != null)
+            {
+                cancelBtn.text = _gameData.scene.QuestionPopup.CancelQuizButton;
+            }
+
+            cancelBtn.clicked += ClosePopup;
         }
 
         private void Update()
@@ -71,9 +79,16 @@ namespace MyGame.Obstacles
 
         private void LoadQuestions()
         {
-            TextAsset jsonFile = Resources.Load<TextAsset>("questions");
+            // Load the master JSON file
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
             if (jsonFile != null)
-                _allQuestions = JsonUtility.FromJson<QuestionList>(jsonFile.text);
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources!");
+            }
         }
 
         public void ShowQuestion(Key keyInstance, PlayerMovement playerInstance)
@@ -85,7 +100,15 @@ namespace MyGame.Obstacles
 
             if (_currentPlayer != null) _currentPlayer.ForceIdle();
 
-            var fullPool = _allQuestions.questions.Where(q => q.id == keyInstance.KeyName).ToList();
+            // Access the nested array via _gameData.scene.QuestionPopup.QuestionContainer
+            if (_gameData == null || _gameData.scene == null || _gameData.scene.QuestionPopup == null)
+            {
+                Debug.LogError("JSON Data is missing or incorrectly formatted!");
+                ClosePopup();
+                return;
+            }
+
+            var fullPool = _gameData.scene.QuestionPopup.QuestionContainer.Where(q => q.id == keyInstance.KeyName).ToList();
 
             if (fullPool.Count > 0)
             {
@@ -133,7 +156,6 @@ namespace MyGame.Obstacles
 
                 newBtn.RegisterCallback<MouseEnterEvent>(evt => newBtn.style.backgroundColor = selectedColor);
                 newBtn.RegisterCallback<MouseLeaveEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
-
                 newBtn.RegisterCallback<FocusEvent>(evt => newBtn.style.backgroundColor = selectedColor);
                 newBtn.RegisterCallback<BlurEvent>(evt => newBtn.style.backgroundColor = StyleKeyword.Null);
 

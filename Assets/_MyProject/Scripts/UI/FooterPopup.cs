@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using MyGame.Logging;
 using UnityEngine.InputSystem;
+using MyGame.Global; // Added to access GameDataRoot
 
 namespace MyGame.UI
 {
@@ -11,7 +12,10 @@ namespace MyGame.UI
         private VisualElement m_HelpPopup;
         private Button m_HelpButton;
         private Button m_CloseButton;
+        private Label m_HelpContentLabel;
         private float m_HelpOpenedRealtime = -1f;
+
+        private GameDataRoot _gameData; // Store the master JSON data
 
         public InputAction toggleHelpAction;
         public InputAction cancelAction;
@@ -35,6 +39,20 @@ namespace MyGame.UI
             }
         }
 
+        private void LoadHelpText()
+        {
+            // Pointing to the new centralized JSON file
+            TextAsset jsonFile = Resources.Load<TextAsset>("game_content");
+            if (jsonFile != null)
+            {
+                _gameData = JsonUtility.FromJson<GameDataRoot>(jsonFile.text);
+            }
+            else
+            {
+                Debug.LogError("Could not find game_content.json in Resources folder!");
+            }
+        }
+
         private void OnEnable()
         {
             toggleHelpAction.Enable();
@@ -47,6 +65,16 @@ namespace MyGame.UI
             m_HelpPopup = root.Q<VisualElement>("HelpPopup");
             m_HelpButton = root.Q<Button>("HelpButton");
             m_CloseButton = root.Q<Button>("CloseHelpButton");
+            m_HelpContentLabel = root.Q<Label>("HelpContentLabel");
+
+            // Load and inject JSON text
+            LoadHelpText();
+
+            if (_gameData != null && _gameData.scene != null && _gameData.scene.HelpPopup != null)
+            {
+                if (m_HelpContentLabel != null) m_HelpContentLabel.text = _gameData.scene.HelpPopup.HelpContentLabel;
+                if (m_CloseButton != null) m_CloseButton.text = _gameData.scene.HelpPopup.CloseButton;
+            }
 
             if (m_HelpButton != null)
             {
